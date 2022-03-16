@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+
+  </head>
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" title="Volver al menu principal">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item" onclick="myFunction(1)">
+                <a class="nav-link" href="#">Control</a>
+            </li>
+            <!--<li class="nav-item" onclick="myFunction(2)">
+                <a class="nav-link" href="#">Etiqueta</a>
+            </li> -->
+            <li class="nav-item" onclick="myFunction(2)">
+                <a class="nav-link" href="#">Baja OP</a>
+            </li>
+            <li class="nav-item" onclick="myFunction(3)">
+                <a class="nav-link" href="#">Informe</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+
+        <div class="container">
+            <div class="row">
+
+            <div class="col-md-12 order-md-1">
+                <div id="control" style={{ display1 }}>
+                    <h2 class="mb-3 text-center">{{ maquina }}</h2>
+                    <h4 class="mb-3">Control</h4>
+                    {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-danger" style={{ display1 }} role="alert">
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                        <form action={{url_for('escanear_codigo', maq=maquina, templete="index1")}} method="POST">
+                            <div class="form-group">
+                            <input type="text" class="form-control" id="cod_escaneado" name="cod_escaneado"
+                                   autofocus="autofocus" placeholder="Codigo Escaneado">
+                            </div>
+                            <button type="submit" style="display:none;" class="btn btn-primary">Submit</button>
+                        </form>
+            <br>
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Piezas escaneadas</th>
+                                    <th scope="col">Descripcion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% for pieza in piezas %}
+                              <tr>
+                                <td>{{pieza.0}}</td>
+                                <td>{{pieza.1}}</td>
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                        </table>
+            <br>
+                </div>
+
+                <div id="baja_op" style={{ display2 }}>
+                    <h2 class="mb-3 text-center">{{ maquina }}</h2>
+                    <h4 class="mb-3">Lectura masiva de piezas</h4>
+                <form action={{url_for('lectura_masiva', maq=maquina)}} method="POST">
+                <div class="container">
+                    <div style={{ display2 }}>
+                      {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'message' %}
+                                  <div class="alert alert-success" role="alert">
+                                {% else %}
+                                  <div class="alert alert-{{ category }}" role="alert">
+                                {% endif %}
+                                  <strong>{{ message }}</strong>
+                                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                  </button>
+                                </div>
+                            {% endfor %}
+                          {% endif %}
+                      {% endwith %}
+                    </div>
+						<div class="form-group" style="display:None;">
+                            <select name="maquina" data-live-search="true" id="maquina" class="form-control">
+                            <option selected value={{ maquina }}>{{ maquina }}</option>
+                            <option value={{ maquina }}>{{ maquina }}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="ops">OP:</label>
+                            <select name="ops" data-live-search="true" id="ops" class="form-control">
+                            <option selected>OP</option>
+                            {% for row in ops %}
+                            <option value="{{row}}">{{row}}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="colores">Color:</label>
+                            <select name="colores" data-live-search="true" id="colores" class="form-control">
+                            <option selected>Color</option>
+                            </select>
+
+                        </div>
+                        <div class="form-group">
+                            <label for="espesores">Espesor:</label>
+                            <select name="espesores" data-live-search="true" id="espesores" class="form-control">
+                            <option selected>Espesor</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="piezas">Pieza:</label>
+                            <select name="piezas" data-live-search="true" id="piezas" class="form-control">
+                            <option selected>Pieza</option>
+                            </select>
+                        </div>
+                    <div><label id="cantidad" name="cantidad"></label></div>
+                    <div><button type="button" class="btn btn-success" data-toggle="modal"
+                                 data-target="#verModal">Dar de baja piezas</button></div>
+                    <div class="modal fade" role="dialog" id="verModal">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-body">
+                                    <div class="form-group">
+                                        <label for="pin">Ingrese PIN: </label>
+                                        <input type="password" name="pin" id="pin" class="form-control">
+                                    </div>
+                                    <button type="submit" class="btn btn-success">OK</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </form>
+                    <br><hr><br>
+                    <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Usuario</th>
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">OP</th>
+                                    <th scope="col">Color</th>
+                                    <th scope="col">Espesor</th>
+                                    <th scope="col">Pieza</th>
+                                    <th scope="col">Cantidad</th>
+                                    <th scope="col">Maquina</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% for lectura in ops_masivo %}
+                              <tr>
+                                <td>{{lectura['Usuario']}}</td>
+                                <td>{{lectura['fechaMod']}}</td>
+                                <td>{{lectura['OP']}}</td>
+                                <td>{{lectura['Color']}}</td>
+                                <td>{{lectura['Espesor']}}</td>
+                                <td>{{lectura['Pieza']}}</td>
+                                <td>{{lectura['Cantidad']}}</td>
+                                <td>{{lectura['maquina']}}</td>
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+
+                    <br>
+                </div>
+
+            <div id="informe" style={{ display3 }}>
+                <div class="container">
+                <h2 class="mb-3 text-center">{{ maquina }}</h2>
+                <form action={{url_for('index1', maquina=maquina, ventana="3")}} method="post">
+                    <label>OP: </label>
+                    <input class="form-control" list="datalistOptions" id="op_informe" name="op_informe">
+                    <datalist id="datalistOptions">
+                        {% for row in op2 %}
+                        <option value="{{row}}">{{row}}</option>
+                        {% endfor %}
+                    </datalist>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Buscar Informe</button>
+                </form>
+                <br>
+                {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-warning" style={{ display3 }} role="alert">
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">idPieza</th>
+                            <th scope="col">OP</th>
+                            <th scope="col">DESCRIPCION</th>
+                            <th scope="col">RUTA</th>
+                            <th scope="col">PLANO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for pieza in piezas_noleidas %}
+                    <tr>
+                        <td>{{pieza.0}}</td>
+                        <td>{{pieza.1}}</td>
+                        <td>{{pieza.2}}</td>
+                        <td>{{pieza.3}}</td>
+                        <td>{{pieza.4}}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            </div>
+            </div>
+        </div>
+      </div>
+
+    <script>
+        function myFunction(idButton) {
+            var div1 = document.getElementById('control');
+            var div2 = document.getElementById('baja_op');
+            var div3 = document.getElementById('informe');
+
+        switch(idButton) {
+            case 1:
+                div1.style.display = 'block';
+                div2.style.display = 'none';
+                div3.style.display = 'none';
+                break;
+            case 2:
+                div1.style.display = 'none';
+                div2.style.display = 'block';
+                div3.style.display = 'none';
+                break;
+            case 3:
+                div1.style.display = 'none';
+                div2.style.display = 'none';
+                div3.style.display = 'block';
+                break;
+        default:
+          alert("hay un problema: No existe id.")
+        }
+    }
+    </script>
+      <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+        <script>
+            $(document).ready(function () {
+                $("#ops").selectpicker();
+                $("#colores").selectpicker();
+
+                function load_data(type, op, maquina) {
+                    $.ajax({
+                        url: "/ops",
+                        method: "POST",
+                        data: { type: type, op: op, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(op)
+                            var html = "<option selected>Color</option>";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<option value="' + data[count].PIEZA_NOMBRECOLOR + '">' + data[count].PIEZA_NOMBRECOLOR + "</option>";
+                            }
+                            if (type == "OP") {
+                                $("#ops").html(html);
+                                $("#ops").selectpicker("refresh");
+                            } else {
+                                $("#colores").html(html);
+                                $("#colores").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#ops", function () {
+                    var op = $("#ops").val();
+					var maquina = $("#maquina").val();
+                    load_data("Color", op, maquina);
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $("#colores").selectpicker();
+                $("#espesores").selectpicker();
+
+                function load_data(type, op, color, maquina) {
+                    $.ajax({
+                        url: "/colores",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(color)
+                            var html = "<option selected>Espesor</option>";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<option value="' + data[count].PIEZA_PROFUNDO + '">' + data[count].PIEZA_PROFUNDO + "</option>";
+                            }
+                            if (type == "Color") {
+                                $("#colores").html(html);
+                                $("#colores").selectpicker("refresh");
+                            } else {
+                                $("#espesores").html(html);
+                                $("#espesores").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#colores", function () {
+                    var op = $("#ops").val();
+                    var color = $("#colores").val();
+					var maquina = $("#maquina").val();
+                    load_data("Espesor", op, color, maquina);
+                });
+            });
+        </script>
+        <script>
+              $(document).ready(function () {
+                $("#ops").selectpicker();
+                $("#colores").selectpicker();
+                $("#espesores").selectpicker();
+
+                function load_data(type, op, color, espesor, maquina) {
+                    $.ajax({
+                        url: "/espesores",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, espesor: espesor, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(espesor)
+                            var html = "<option selected>Pieza</option>";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<option value="' + data[count].PIEZA_DESCRIPCION + '">' + data[count].PIEZA_DESCRIPCION + "</option>";
+                                }
+
+                            if (type == "Espesor") {
+                                $("#espesores").html(html);
+                                $("#espesores").selectpicker("refresh");
+                            } else {
+                                $("#piezas").html(html);
+                                $("#piezas").selectpicker("refresh");
+                            }
+                        },
+                    });
+                    $.ajax({
+                        url: "/espesores_cantidad",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, espesor: espesor, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(espesor)
+                            var html = "";
+                            html += '<label value="' + data[0].CANTIDAD + '"> CANTIDAD DE PIEZAS SELECCIONADAS: ' + data[0].CANTIDAD + "</label>";
+
+                            if (type == "Espesor") {
+                                $("#espesores").html(html);
+                                $("#espesores").selectpicker("refresh");
+                            } else {
+                                $("#cantidad").html(html);
+                                $("#cantidad").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#espesores", function () {
+                    var op = $("#ops").val();
+                    var color = $("#colores").val();
+                    var espesor = $("#espesores").val();
+					var maquina = $("#maquina").val();
+                    load_data("Pieza", op, color, espesor, maquina);
+                });
+            });
+        </script>
+        <script>
+              $(document).ready(function () {
+                $("#ops").selectpicker();
+                $("#colores").selectpicker();
+                $("#espesores").selectpicker();
+                $("#pieza").selectpicker();
+
+                function load_data(type, op, color, espesor, pieza, maquina) {
+                    $.ajax({
+                        url: "/piezas",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, espesor: espesor, pieza: pieza, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(pieza)
+                            var html = "";
+                            html += '<label value="' + data[0].CANTIDAD + '"> CANTIDAD DE PIEZAS SELECCIONADAS: ' + data[0].CANTIDAD + "</label>";
+
+                            if (type == "Pieza") {
+                                $("#piezas").html(html);
+                                $("#piezas").selectpicker("refresh");
+                            } else {
+                                $("#cantidad").html(html);
+                                $("#cantidad").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#piezas", function () {
+                    var op = $("#ops").val();
+                    var color = $("#colores").val();
+                    var espesor = $("#espesores").val();
+                    var pieza = $("#piezas").val();
+					var maquina = $("#maquina").val();
+                    load_data("Cantidad", op, color, espesor, pieza, maquina);
+                });
+            });
+        </script>
+
+        </body>
+
+</html>

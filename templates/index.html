@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+    <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+    <title>Sistema de control</title>
+  </head>
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav mr-auto">
+             <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Corte
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href={{ url_for('index1' , maquina="GBN1", ventana=1) }}>GBN1</a>
+                <a class="dropdown-item" href={{ url_for('index1' , maquina="SLC", ventana=1) }}>SLC</a>
+                <a class="dropdown-item" href={{ url_for('index1' , maquina="NST", ventana=1) }}>NST</a>
+                <a class="dropdown-item" href={{ url_for('index1' , maquina="GBM", ventana=1) }}>GBM</a>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Pegado
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href={{ url_for('index1' , maquina="STF", ventana=1) }}>STF</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="MRT1", ventana="1") }}>MRT1</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="MRT2", ventana="1") }}>MRT2</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="MRT3", ventana="1") }}>MRT3</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="MRT4", ventana="1") }}>MRT4</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="IDM", ventana="1") }}>IDM</a>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Agujereado
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="RVR", ventana="1") }}>RVR</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="CHN", ventana="1") }}>CHN</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="FTAL1", ventana="1") }}>FTAL1</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="KBT1", ventana="1") }}>KBT1</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="KBT2", ventana="1") }}>KBT2</a>
+                <a class="dropdown-item" href={{ url_for('index1' , maquina="VTP1", ventana=1) }}>VTP1</a>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Frentes
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href={{ url_for('index1' , maquina="LEA", ventana=1) }}>LEA</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="PRS", ventana="1") }}>PRS</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="ALU", ventana="1") }}>ALU</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="FAB", ventana="1") }}>FAB</a>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Armado
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="PLTER", ventana="1") }}>PLTER</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="HORNO", ventana="1") }}>HORNO</a>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Control
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="PLACARD", ventana="1") }}>PLACARD</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="PEGADO", ventana="1") }}>PEGADO</a>
+                <a class="dropdown-item" href={{ url_for('index2' , maquina="AGUJEREADO", ventana="1") }}>AGUJEREADO</a>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Informes
+              </a>
+              <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="dropdown-item" href={{ url_for('index3' , maquina="DESPACHO", templete='index3') }}>DESPACHO</a>
+              </div>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link" href="planos/0">
+                Planos
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+        
+    <br>
+
+    <div class="container">
+    
+      <div class="row">
+        
+        <div class="col-md-12 order-md-1">
+          <br>
+          <h4 class="mb-3 text-center">SELECCIONE EL SISTEMA A UTILIZAR</h4>
+        </div>
+      </div>
+    
+    </div>
+      <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+    </body>
+</html>

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+    <title>Sistema de control</title>
+  </head>
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" title="Volver al menu principal">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item" onclick="myFunction(1)">
+                <a class="nav-link" href="#">Control</a>
+            </li>
+            <li class="nav-item" onclick="myFunction(2)">
+                <a class="nav-link" href="#">Informe</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+
+        <div class="container">
+            <div class="row">
+
+            <div class="col-md-12 order-md-1">
+                <div id="control" style={{ display1 }}>
+                    <h2 class="mb-3 text-center">{{ maquina }}</h2>
+                    <h4 class="mb-3">Control</h4>
+                    {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-danger" role="alert" style={{ display1}}>
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                        <form action={{url_for('escanear_codigo', maq=maquina, templete="index2")}} method="POST">
+                            <div class="form-group">
+                            <input type="text" class="form-control" id="cod_escaneado" name="cod_escaneado"
+                                   autofocus="autofocus" placeholder="Codigo escaneado">
+                            </div>
+                            <button type="submit" style="display:none;" class="btn btn-primary">Submit</button>
+                        </form>
+            <br>
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Piezas escaneadas</th>
+                                    <th scope="col">Descripcion</th>
+                                </tr>
+                            </thead>
+                                <tbody>
+                                  {% for pieza in piezas %}
+                                  <tr>
+                                    <td>{{pieza.0}}</td>
+                                    <td>{{pieza.1}}</td>
+                                  </tr>
+                                  {% endfor %}
+                                </tbody>
+                        </table>
+            <br>
+                </div>
+
+                <div id="informe" style={{ display2 }}>
+                <h2 class="mb-3 text-center">{{ maquina }}</h2>
+                <form action={{url_for('index2', maquina=maquina, ventana="2")}} method="post">
+                    <label>OP: </label>
+                    <input class="form-control" list="datalistOptions" id="op_informe" name="op_informe">
+                    <datalist id="datalistOptions">
+                        {% for row in op2 %}
+                        <option value="{{row}}">{{row}}</option>
+                        {% endfor %}
+                    </datalist>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Buscar Informe</button>
+                </form>
+                <br>
+                {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-warning" style={{ display2 }} role="alert">
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">idPieza</th>
+                            <th scope="col">OP</th>
+                            <th scope="col">DESCRIPCION</th>
+                            <th scope="col">RUTA</th>
+                            <th scope="col">PLANO</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for pieza in piezas_noleidas %}
+                    <tr>
+                        <td>{{pieza.0}}</td>
+                        <td>{{pieza.1}}</td>
+                        <td>{{pieza.2}}</td>
+                        <td>{{pieza.3}}</td>
+                        <td>{{pieza.4}}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                </div>
+
+            </div>
+           </div>
+         </div>
+
+      <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+
+    </body>
+    <script>
+        function myFunction(idButton) {
+            var div1 = document.getElementById('control');
+            var div2 = document.getElementById('informe');
+
+        switch(idButton) {
+            case 1:
+                div1.style.display = 'block';
+                div2.style.display = 'none';
+                break;
+            case 2:
+                div1.style.display = 'none';
+                div2.style.display = 'block';
+                break;
+        default:
+          alert("hay un problema: No existe id.")
+        }
+    }
+    </script>
+
+
+</html>

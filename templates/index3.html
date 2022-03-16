@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+
+  </head>
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" title="Volver al menu principal">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+
+        <div class="container">
+            <div class="row">
+
+            <div class="col-md-12 order-md-1">
+                <div id="baja_op">
+                    <h2 class="mb-3 text-center">{{ maquina }}</h2>
+
+
+
+
+                            <label for="ops">Cliente Final:</label>
+                            <select name="ops" data-live-search="true" id="ops" class="form-control">
+                            <option selected>CF</option>
+                            {% for row in clientes %}
+                            <option value="{{row['CLIENTE_FINAL']}}">{{row['CLIENTE_FINAL']}}</option>
+                            {% endfor %}
+                            </select>
+                    <br><br>
+
+                            <label for="colores">SO:</label>
+                            <select name="colores" data-live-search="true" id="colores" class="form-control">
+                            <option selected>SO</option>
+                            {% for row in sos %}
+                            <option value="{{row['SO']}}">{{row['SO']}}</option>
+                            {% endfor %}
+                            </select>
+                    <br><br>
+
+                    <br><br>
+                    <table class="table table-dark table-striped">
+                            <thead>
+                            <tr>
+                                <th scope="col">FRANQUICIA</th>
+                                <th scope="col">SO</th>
+                                <th scope="col">CLIENTE_FINAL</th>
+                                <th scope="col">PT_PRODUCTO</th>
+                                <th scope="col">OP</th>
+                                <th scope="col" data-bs-toggle="tooltip" title="Terminados">T</th>
+                                <th scope="col" data-bs-toggle="tooltip" title="Pendientes">P</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tabla" name="tabla">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+            <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+            <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+            <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+        <script>
+            $(document).ready(function () {
+                $("#ops").selectpicker();
+
+                function load_data(type, op) {
+                    $.ajax({
+                        url: "/buscar_cf",
+                        method: "POST",
+                        data: { type: type, op: op },
+                        dataType: "json",
+                        success: function (data) { //alert(op)
+                            var html = "";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<tr><td>' + data[count].FRANQUICIA + "</td>" +
+                                '<td>' + data[count].SO + "</td>" +
+                                '<td>' + data[count].CLIENTE_FINAL + "</td>" +
+                                '<td>' + data[count].PT_PRODUCTO + "</td>" +
+                                '<td>' + data[count].OP + "</td>" +
+                                '<td>' + data[count].TERMINADOS + "</td>" +
+                                '<td>' + data[count].PENDIENTES + "</td></tr>";
+                            }
+                            if (type == "FR") {
+                                $("#tabla").html(html);
+                                $("#tabla").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#ops", function () {
+                    var op = $("#ops").val();
+                    load_data("FR", op);
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $("#colores").selectpicker();
+
+                function load_data(type, color) {
+                    $.ajax({
+                        url: "/buscar_so",
+                        method: "POST",
+                        data: { type: type, color: color },
+                        dataType: "json",
+                        success: function (data) { //alert(color)
+                            var html = "";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<tr><td>' + data[count].FRANQUICIA + "</td>" +
+                                '<td>' + data[count].SO + "</td>" +
+                                '<td>' + data[count].CLIENTE_FINAL + "</td>" +
+                                '<td>' + data[count].PT_PRODUCTO + "</td>" +
+                                '<td>' + data[count].OP + "</td>" +
+                                '<td>' + data[count].TERMINADOS + "</td>" +
+                                '<td>' + data[count].PENDIENTES + "</td></tr>";
+                            }
+                            if (type == "SO") {
+                                $("#tabla").html(html);
+                                $("#tabla").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#colores", function () {
+                    var color = $("#colores").val();
+                    load_data("SO", color);
+                });
+            });
+        </script>
+
+        </body>
+
+</html>

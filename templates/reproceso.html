@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+ <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+ <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/css/bootstrap-select.min.css" />
+    <title>Sistema de control</title>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+          </ul>
+        </div>
+    </nav>
+
+    <div class="conteiner">
+        <div class="col-md-12 order-md-1">
+
+            <h3 class="mb-3 text-center"><strong>REPROCESO PIEZA</strong></h3>
+            <div class="form-check">
+                <h4>
+                    BUSCAR POR: &nbsp;
+                 <input type="radio" id="id" name="tipo" value="id" onchange="javascript:showContent(1)" {{ check1 }}>
+                     <label>IdPieza &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp; </label>
+                 <input type="radio" id="idmasivo" name="tipo" value="idmasivo" onchange="javascript:showContent(2)" {{ check2 }}>
+                    <label>No tengo id &nbsp;&nbsp;&nbsp; | &nbsp;&nbsp;&nbsp;</label>
+                 <input type="radio" id="pr" name="tipo" value="pr" onchange="javascript:showContent(3)" {{ check3 }}>
+                    <label>Orden Manufactura</label>
+                 </h4>
+            </div>
+            <div id="form_reproceso1" style={{ display1 }}>
+                    {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-danger" style={{ display1 }} role="alert">
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                    <form action={{ url_for('reproceso', display="1") }}>
+                     <div class="form-group">
+                        <label for="idPieza">ID PIEZA: </label>
+                        <input type="number" class="form-control" id="idPieza" name="idPieza">
+                        <button type="button" style="display:None;"></button>
+                    </div>
+                    </form>
+                    <form action={{url_for('generar_reproceso', tipo="ID")}} method="POST">
+                     <div class="form-group" style="display:None;">
+                         <input type="number" class="form-control" id="idP" name="idP" value={{ idP }}>
+                     </div>
+                    <h2> {{ idPieza }} </h2>
+                    <div class="form-group">
+                        <label for="maq_1">MAQUINA DONDE SE DETECTO EL FALLO: </label>
+                        <select name="maq_1" data-live-search="true" id="maq_1" class="form-control">
+                        <option selected>Maq</option>
+                        {% for maq in maqs_1 %}
+                        <option value="{{maq}}">{{maq}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maq_2">MAQUINA DONDE DEBE COMENZAR EL REPROCESO: </label>
+                        <select name="maq_2" data-live-search="true" id="maq_2" class="form-control">
+                        <option selected>Maq</option>
+                        {% for maq in maqs_2 %}
+                        <option value="{{maq}}">{{maq}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">Imprimir reproceso</button>
+                    </div>
+                    </form>
+            </div>
+            <div id="form_reproceso2" style={{ display2 }}>
+                {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-danger" style={{ display2 }} role="alert">
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                <form action={{url_for('generar_reproceso', tipo="OP")}} method="POST">
+                    <div class="form-group">
+                    <select name="maquina1_1" data-live-search="true" id="maquina1_1" class="form-control" required>
+                            {% set maquinas = ["GBN1", "SLC", "STF", "MRT1", "MRT2", "MRT3", "MRT4", "IDM",
+                            "RVR", "FTAL1", "KBT1", "KBT2", "VTP1", "LEA", "PRS", "ALU"] %}
+                            <option selected>Maquina</option>
+                            {% for maquinaRP in maquinas %}
+                            <option value="{{maquinaRP}}">{{maquinaRP}}</option>
+                            {% endfor %}
+                    </select>
+                    </div>
+                    <div class="form-group">
+                    <label for="ops">OP: </label>
+                    <select name="ops" data-live-search="true" id="ops" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="colores">COLOR: </label>
+                        <select name="colores" data-live-search="true" id="colores" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="espesores">ESPESOR: </label>
+                        <select name="espesores" data-live-search="true" id="espesores" class="form-control" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="piezas">PIEZA: </label>
+                        <select name="piezas" data-live-search="true" id="piezas" class="form-control" required></select>
+                    </div>
+                    <div><label id="info"></label></div>
+                    <div class="form-group" id="cant_max"></div>
+                    <div class="form-group">
+                        <label for="maquina2">MAQUINA DONDE DEBE COMENZAR EL REPROCESO: </label>
+                        <select name="maquina2" data-live-search="true" id="maquina2" class="form-control" required></select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Solicitar Reproceso</button>
+                </form>
+            </div>
+
+            <div id="form_reproceso3" style={{ display3 }}>
+                {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-danger" style={{ display3 }} role="alert">
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                <form action={{ url_for('reproceso', display="3") }}>
+                     <div class="form-group">
+                        <label for="om">ORDEN MANUFACTURA: </label>
+                        <input type="text" class="form-control" id="om" name="om">
+                        <button type="button" style="display:None;"></button>
+                     </div>
+                </form>
+                    <h4> {{ ordenManu }} </h4>
+                    <a><strong>{{ modulo }}</strong></a>
+                    <br><br>
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">idPieza</th>
+                                <th scope="col">Descripcion</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pieza in piezas %}
+                            <tr>
+                                <th scope="col"> {{ pieza['idPieza'] }}</th>
+                                <th scope="col"> {{ pieza['PIEZA_DESCRIPCION'] }}</th>
+                                <th id="maq_box"></th>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    <form action={{url_for('generar_reproceso', tipo="PRMO")}} method="POST">
+                    <div class="form-group">
+                        <label for="maq_om">SELECCIONE EL ID DE LA PIEZA A REPROCESAR: </label>
+                        <select name="id_prmo" data-live-search="true" id="id_prmo" class="form-control">
+                        <option selected>Id</option>
+                        {% for pieza in piezas %}
+                        <option value="{{ pieza['idPieza'] }}">{{ pieza['idPieza'] }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="maq_om">MAQUINA DONDE DEBE COMENZAR EL REPROCESO: </label>
+                        <select name="maq_om" data-live-search="true" id="maq_om" class="form-control">
+                        <option selected>Maq</option>
+                        {% for maq in maqs_om %}
+                        <option value="{{maq}}">{{maq}}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn btn-primary">Imprimir reproceso</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js"></script>
+<script>
+    function showContent(idButton) {
+            var div1 = document.getElementById('form_reproceso1');
+            var div2 = document.getElementById('form_reproceso2');
+            var div3 = document.getElementById('form_reproceso3');
+
+        switch(idButton) {
+            case 1:
+                div1.style.display = 'block';
+                div2.style.display = 'none';
+                div3.style.display = 'none';
+                break;
+            case 2:
+                var array = ["GBN1", "SLC", "STF", "MRT1", "MRT2", "MRT3", "MRT4", "IDM",
+                "RVR", "FTAL1", "KBT1", "KBT2", "VTP1", "LEA", "PRS", "ALU", "ARMADO", "PLACARES"];
+                addOptions("maquina1_1", array);
+                div1.style.display = 'none';
+                div2.style.display = 'block';
+                div3.style.display = 'none';
+                break;
+            case 3:
+                div1.style.display = 'none';
+                div2.style.display = 'none';
+                div3.style.display = 'block';
+                break;
+        default:
+          alert("hay un problema: No existe id.")
+        }
+    }
+</script>
+<script>
+    $(document).ready(function () {
+        $("#idP").selectpicker();
+        $("#maq_1").selectpicker();
+
+        function load_data(type, maq_1, idP) {
+            $.ajax({
+                url: "/separaruta",
+                method: "POST",
+                data: { type: type, maq_1: maq_1, idP: idP },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "<option selected>Maq</option>";
+                    for (var count = 0; count < data.length; count++) {
+                        html += '<option value="' + data[count] + '">' + data[count] + "</option>";
+                    }
+                    if (type == "MAQ") {
+                        $("#maq1").html(html);
+                        $("#maq1").selectpicker("refresh");
+                    } else {
+                        $("#maq_2").html(html);
+                        $("#maq_2").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#maq_1", function () {
+            var maq_1 = $("#maq_1").val();
+            var idP = $("#idP").val();
+            load_data("OP", maq_1, idP);
+        });
+    });
+</script>
+<script>
+    function addOptions(domElement, array) {
+ var select = document.getElementsByName(domElement)[0];
+ for (value in array) {
+  var option = document.createElement("option");
+  option.text = array[value];
+  select.add(option);
+ }
+}
+</script>
+<script>
+    $(document).ready(function () {
+        $("#maquina1_1").selectpicker();
+        $("#ops").selectpicker();
+
+        function load_data(type, maquina) {
+            $.ajax({
+                url: "/ops_reproceso",
+                method: "POST",
+                data: { type: type, maquina: maquina },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "<option selected>Op</option>";
+                    for (var count = 0; count < data.length; count++) {
+                        html += '<option value="' + data[count].OP + '">' + data[count].OP + "</option>";
+                    }
+                    if (type == "MAQ") {
+                        $("#maquina1_1").html(html);
+                        $("#maquina1_1").selectpicker("refresh");
+                    } else {
+                        $("#ops").html(html);
+                        $("#ops").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#maquina1_1", function () {
+            var maquina = $("#maquina1_1").val();
+            load_data("OP", maquina);
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#maquina1_1").selectpicker();
+        $("#ops").selectpicker();
+        $("#colores").selectpicker();
+
+        function load_data(type, maquina, op) {
+            $.ajax({
+                url: "/colores_reproceso",
+                method: "POST",
+                data: { type: type, maquina: maquina, op: op },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "<option selected>Color</option>";
+                    for (var count = 0; count < data.length; count++) {
+                        html += '<option value="' + data[count].PIEZA_NOMBRECOLOR + '">' + data[count].PIEZA_NOMBRECOLOR + "</option>";
+                    }
+                    if (type == "OP") {
+                        $("#ops").html(html);
+                        $("#ops").selectpicker("refresh");
+                    } else {
+                        $("#colores").html(html);
+                        $("#colores").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#ops", function () {
+            var maquina = $("#maquina1_1").val();
+            var op = $("#ops").val();
+            load_data("COLOR", maquina, op);
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#maquina1_1").selectpicker();
+        $("#ops").selectpicker();
+        $("#colores").selectpicker();
+        $("#espesores").selectpicker();
+
+        function load_data(type, maquina, op, color) {
+            $.ajax({
+                url: "/espesores_reproceso",
+                method: "POST",
+                data: { type: type, maquina: maquina, op: op, color: color },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "<option selected>Espesor</option>";
+                    for (var count = 0; count < data.length; count++) {
+                        html += '<option value="' + data[count].PIEZA_PROFUNDO + '">' + data[count].PIEZA_PROFUNDO + "</option>";
+                    }
+                    if (type == "COLOR") {
+                        $("#colores").html(html);
+                        $("#colores").selectpicker("refresh");
+                    } else {
+                        $("#espesores").html(html);
+                        $("#espesores").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#colores", function () {
+            var maquina = $("#maquina1_1").val();
+            var op = $("#ops").val();
+            var color = $("#colores").val();
+            load_data("ESPESOR", maquina, op, color);
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#maquina1_1").selectpicker();
+        $("#ops").selectpicker();
+        $("#colores").selectpicker();
+        $("#espesores").selectpicker();
+        $("#piezas").selectpicker();
+
+        function load_data(type, maquina, op, color, espesor) {
+            $.ajax({
+                url: "/piezas_reproceso",
+                method: "POST",
+                data: { type: type, maquina: maquina, op: op, color: color, espesor: espesor },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "<option selected>Pieza</option>";
+                    for (var count = 0; count < data.length; count++) {
+                        html += '<option value="' + data[count].PIEZA_DESCRIPCION + '">' + data[count].PIEZA_DESCRIPCION + "</option>";
+                    }
+                    if (type == "ESPESOR") {
+                        $("#espesores").html(html);
+                        $("#espesores").selectpicker("refresh");
+                    } else {
+                        $("#piezas").html(html);
+                        $("#piezas").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#espesores", function () {
+            var maquina = $("#maquina1_1").val();
+            var op = $("#ops").val();
+            var color = $("#colores").val();
+            var espesor = $("#espesores").val();
+            load_data("PIEZA", maquina, op, color, espesor);
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#maquina1_1").selectpicker();
+        $("#ops").selectpicker();
+        $("#colores").selectpicker();
+        $("#espesores").selectpicker();
+        $("#piezas").selectpicker();
+
+        function load_data(type, maquina, op, color, espesor, pieza) {
+            $.ajax({
+                url: "/info_piezas",
+                method: "POST",
+                data: { type: type, maquina: maquina, op: op, color: color, espesor: espesor, pieza: pieza },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "";
+                    html += '<label value="' + data[0].CANTIDAD + '"> CANTIDAD DE PIEZAS: ' + data[0].CANTIDAD +
+                    ' | RUTA DE PIEZAS: ' + data[0].RUTA_ASIGNADA + "</label>";
+                    var html2 = "";
+                    html2 += '<input type="number" name="cantidad" id="cantidad" class="form-control" min="1" max="' + data[0].CANTIDAD + '">'
+                    if (type == "PIEZA") {
+                        $("#piezas").html(html);
+                        $("#piezas").selectpicker("refresh");
+                    } else {
+                        $("#info").html(html);
+                        $("#info").selectpicker("refresh");
+                        $("#cant_max").html(html2);
+                        $("#cant_max").selectpicker("refresh");
+                    }
+                },
+            });
+            $.ajax({
+                url: "/maquina2",
+                method: "POST",
+                data: { type: type, maquina: maquina, op: op, color: color, espesor: espesor, pieza: pieza },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "<option selected>Maq</option>";
+                    for (var count = 0; count < data.length; count++) {
+                    html += '<option value="' + data[count] + '">' + data[count] + "</option>";
+                    }
+                    if (type == "PIEZA") {
+                        $("#piezas").html(html);
+                        $("#piezas").selectpicker("refresh");
+                    } else {
+                        $("#maquina2").html(html);
+                        $("#maquina2").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#piezas", function () {
+            var maquina = $("#maquina1_1").val();
+            var op = $("#ops").val();
+            var color = $("#colores").val();
+            var espesor = $("#espesores").val();
+            var pieza = $("#piezas").val();
+            load_data("INFO", maquina, op, color, espesor, pieza);
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $("#id_prmo").selectpicker();
+
+        function load_data(type, id_prmo) {
+            $.ajax({
+                url: "/ruta_prmo",
+                method: "POST",
+                data: { type: type, id_prmo: id_prmo },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = "<option selected>Maq</option>";
+                    for (var count = 0; count < data.length; count++) {
+                    html += '<option value="' + data[count] + '">' + data[count] + "</option>";
+                    }
+                    if (type == "ID") {
+                        $("#id_prmo").html(html);
+                        $("#id_prmo").selectpicker("refresh");
+                    } else {
+                        $("#maq_om").html(html);
+                        $("#maq_om").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#id_prmo", function () {
+            var id_prmo = $("#id_prmo").val();
+            load_data("INFO", id_prmo);
+        });
+    });
+</script>
+</body>
+</html>

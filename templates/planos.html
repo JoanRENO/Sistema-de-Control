@@ -1,0 +1,35 @@
+<body>
+<iframe src="/buscar_plano/{{ plano }}"
+        id="inlineFrameExample"
+        title="Inline Frame Example"
+        height="100%"
+        width="84%"
+        style="float:right;">
+</iframe>
+
+<div class="text-center" width="22%" style="float:left;">
+    <label><strong>Ingrese codigo: </strong> </label>
+    <form action={{url_for('leer_plano')}} method="POST">
+        <input type="text" name="plano" id="plano" autofocus>
+        <button type="submit" style="display:none;" class="btn btn-primary">Submit</button>
+    </form>
+    <br>
+    <a href="/"><strong>Volver al menu</strong></a>
+    <br>
+    <h2 class="text-center">MULTIFAMILIAR</h2>
+    <br>
+    <progress id="progreso_Multi" value="{{ produccion[0].Cantidad }}" max="{{ produccion[0].Objetivo }}"></progress>
+    <br>
+    <h2 id="multifamiliar" for="progreso_Multi"> {{ produccion[0].Cantidad }} de {{ produccion[0].Objetivo }}</h2>
+    <br>
+    <br>
+    <h2>UNIFAMILIAR</h2>
+    <br>
+    <progress id="progreso_Uni" value="{{ produccion[1].Cantidad }}" max="{{ produccion[1].Objetivo }}"></progress>
+    <br>
+    <h2 id="unifamiliar" for="progreso_Uni"> {{ produccion[1].Cantidad }} de {{ produccion[1].Objetivo }}</h2>
+    <br>
+    <br>
+    <h1 class="text-center" style="color:red;font-size:60px;" id="total"> {{ produccion[0].Cantidad + produccion[1].Cantidad }}</h1>
+</div>
+</body>
