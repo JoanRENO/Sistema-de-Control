@@ -608,11 +608,13 @@ def generar_reproceso(tipo):
                                                 info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
                                                 info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select)
                     Reproceso().imprimirEtiqueta()
-                    ruta = info['RUTA_ASIGNADA']
-                    op = info['OP']
+                    Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
+                                              info['RUTA_ASIGNADA'], info['OP'])
+                    #ruta = info['RUTA_ASIGNADA']
+                    #op = info['OP']
             else:
                 return redirect(url_for('reproceso', display="42"))
-            Reproceso().log_reproceso(0, maq_select, pieza, maq_detecto, cantidad, ruta, op)
+            #Reproceso().log_reproceso(0, maq_select, pieza, maq_detecto, cantidad, ruta, op)
             return redirect(url_for('reproceso', display="2"))
         if tipo == "PRMO":
             print(tipo)
