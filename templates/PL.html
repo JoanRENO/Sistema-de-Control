@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+
+  </head>
+<body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" title="Volver al menu principal">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('pallet', tipo="0")}}>Armado</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/imprimir_pallet">Imprimir</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <div class="container">
+            <div class="row">
+                <div class="col-md-12">
+                    <div id="imprimir_pallets">
+                        {% for j in range(1,cantidad+1) %}
+                        {% set k = ((j-1) * 15) + 1 %}
+                        {% for p in tabla %}
+                        {% if loop.index == k %}
+                        <div class="row bg-dark text-white">
+                            <h1 class="col-md-2"><strong>PL-{{ numPallet }}</strong></h1>
+                            <h2 class="col-md-6"><strong>OP: {{ OP }}</strong></h2>
+                            <div class="col-md-4">
+                                <h4> Fecha Inicio: {{ fInicio }}</h4>
+                                <h4> Fecha Fin: {{ fFin }}</h4>
+                            </div>
+                        </div>
+                        <table class="table table-light table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Acuerdo</th>
+                                    <th scope="col">Ambiente</th>
+                                    <th scope="col">DESCRIPCION</th>
+                                    <th scope="col">C</th>
+                                    <th scope="col">ORDEN MAMUFACTURA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>{{ acuerdos[loop.index-1] }}</td>
+                                    <td>{{ ambientes[loop.index-1] }}</td>
+                                    <td>{{ p['PT_PRODUCTO'] }}</td>
+                                    <td>{{ p['cant']}}</td>
+                                    <td>{{ p['om'] }} <img src={{url_for('static', filename='images/' + barcodes[loop.index-1])}}> </td>
+                                </tr>
+                            {% endif %}
+                            {% if (loop.index > k and loop.index < (j*15)) %}
+                            <tr>
+                                    <td>{{ acuerdos[loop.index-1] }}</td>
+                                    <td>{{ ambientes[loop.index-1] }}</td>
+                                    <td>{{ p['PT_PRODUCTO'] }}</td>
+                                    <td>{{ p['cant']}}</td>
+                                    <td>{{ p['om'] }} <img src={{url_for('static', filename='images/' + barcodes[loop.index-1])}}></td>
+                            </tr>
+                            {% endif %}
+                            {% if loop.index == (j*15) %}
+                            <tr>
+                                    <td>{{ acuerdos[loop.index-1] }}</td>
+                                    <td>{{ ambientes[loop.index-1] }}</td>
+                                    <td>{{ p['PT_PRODUCTO'] }}</td>
+                                    <td>{{ p['cant']}}</td>
+                                    <td>{{ p['om'] }} <img src={{url_for('static', filename='images/' + barcodes[loop.index-1])}}></td>
+                            </tr>
+                                </tbody>
+                        </table>
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+      </div>
+</body>
+<script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+<script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+<script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+
+
+</html>

@@ -12,6 +12,7 @@ from dataBase.AB_ModulosPiezas import ABM
 from dataBase.plano import Plano
 from dataBase.informes import Informe
 from dataBase.reproceso import Reproceso
+from dataBase.pallet import Pallet
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './'
@@ -635,6 +636,59 @@ def generar_reproceso(tipo):
             else:
                 return redirect(url_for('reproceso', display="43"))
             return redirect(url_for('reproceso', display="3"))
+
+
+#PALLET
+@app.route("/pallet/<string:tipo>", methods=["POST", "GET"])
+def pallet(tipo):
+    if tipo == "0":
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+    if tipo == "1":
+        Pallet().crearPallet()
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+    if tipo == "2":
+        idPallet = request.values.get('cerrar')
+        print(idPallet)
+        Pallet().cerrarPallet(idPallet)
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+    if tipo == "3":
+        idPallet = request.values.get('idPallet')
+        print(idPallet, type(idPallet))
+        if idPallet == '':
+            flash('Por favor seleccione un pallet')
+        else:
+            om = request.args.get('cod_escaneado')
+            if Pallet().verificarModulo(om) == 1:
+                if Pallet().verificarModuloPallet(om) == 0:
+                    Pallet().agregarModulo(om, idPallet)
+                else:
+                    flash('El modulo ya esta cargado en un pallet')
+            elif Pallet().verificarModulo(om) == 0:
+                flash('El modulo no a sido leido', 'danger')
+            else:
+                flash('Modulo inexistente', 'danger')
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+    if tipo[0] == "4":
+        om = request.values.get('idOM')
+        Pallet().eliminarModulo(om)
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
+                               modulos=Pallet().getTablaModulosPallets())
+
+
+@app.route("/imprimir_pallet")
+def imprimir_pallet():
+    return render_template('imprimirPallet.html', pallets=Pallet().getTablaImprimir())
+
+
+@app.route("/PL/<string:numPallet>/<string:op>")
+def PL(numPallet, op):
+    tabla = Pallet().getTablaPalletImprimir(numPallet, op)
+    acuerdos, ambientes, barcodes, cant = Pallet().obtenerDatos(numPallet, op)
+    cantidad = str((cant/14)+1)[0]
+    return render_template('PL.html', numPallet=numPallet, tabla=tabla, OP=tabla[0]['OP'],
+                           fInicio=tabla[0]['fechaInicio'], fFin=tabla[0]['fechaFin']
+                           ,acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=int(cantidad), total=cant)
+
 
 serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!
 

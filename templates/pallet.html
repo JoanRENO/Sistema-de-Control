@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+
+  </head>
+<body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" title="Volver al menu principal">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link" href="#">Armado</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('imprimir_pallet')}}>Imprimir</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <div class="container">
+            <div class="row">
+                <div class="col-md-12 order-md-1">
+                    <div id="pallets">
+                        <h2 class="mb-3 text-center">PALLETS</h2>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                              {% if messages %}
+                                {% for category, message in messages %}
+                                    {% if category == 'message' %}
+                                    <div class="alert alert-warning" role="alert">
+                                    {% else %}
+                                      <div class="alert alert-{{ category }}" role="alert">
+                                    {% endif %}
+                                      <strong>{{ message }}</strong>
+                                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                      <span aria-hidden="true">&times;</span>
+                                      </button>
+                                      </div>
+                                    </div>
+                                {% endfor %}
+                              {% endif %}
+                          {% endwith %}
+                        <form action={{url_for('pallet', tipo = "3")}} method="GET">
+                            <div class="form-group">
+                            <input type="text" class="form-control" id="cod_escaneado" name="cod_escaneado"
+                                   autofocus="autofocus" placeholder="Codigo Escaneado">
+                            </div>
+                            <div class="form-group">
+                            <input type="text" class="form-control" style="display:None;" id="idPallet" name="idPallet">
+                            </div>
+                            <button type="submit" style="display:none;" class="btn btn-primary">Submit</button>
+                        </form>
+                        <hr>
+                        <div>
+                            <form action={{url_for('pallet', tipo = "1")}} method="GET">
+                                <input style="display:None;">
+                                <button type="submit" class="btn btn-primary">Crear Pallet</button>
+                            </form>
+                        </div>
+                <br>
+                        {% for p in pallets %}
+                        <div>
+                        <h2 class="bg-secondary text-white">
+                            <input type="checkbox" id="checkPallet{{ loop.index }}" name="checkPallet{{ loop.index }}" onchange="activarPallet({{ loop.index }})"
+                                   {% if loop.index == 1 %}
+                                   value="1" checked>
+                                    <script> document.getElementById('idPallet').value = {{ p['idPallet'] }} </script>
+                                   {% else %}
+                                    value="0">
+                                   {% endif %}
+                            Nro de Pallet: {{ p['idPallet'] }} | Fecha Inicio: {{ p['fechaInicio']}}</h2>
+                        </div>
+                        <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">ORDEN MANUFACTURA</th>
+                                    <th scope="col">DECRIPCION</th>
+                                    <th scope="col"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for mod in modulos %}
+                            {% if mod['idPallet'] == p['idPallet'] %}
+                                <tr>
+                                    <td>{{ mod['idOrdenManufactura'] }}</td>
+                                    <td>{{ mod['PT_PRODUCTO'] }}</td>
+                                    <td>
+                                        <form action={{url_for('pallet', tipo = "4" )}} method="get">
+                                        <div class="form-group">
+                                            <input style="display:None;" id="idOM" name="idOM" value={{ mod['idOrdenManufactura'] }}>
+                                            <button class="btn btn-danger" type="submit" ><strong>X</strong></button>
+                                        </div>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                        <form action={{url_for('pallet', tipo = "2")}} method="GET">
+                            <input id="cerrar{{ loop.index }}" name="cerrar" style="display:None;" value={{ p['idPallet'] }}>
+                            <button type="submit" class="btn btn-danger" id="closePallet{{ loop.index }}"
+                            {% if loop.index == 1 %}
+                                   >
+                                   {% else %}
+                                    disabled>
+                                   {% endif %}
+                                    Cerrar</button>
+                        </form>
+                        <hr>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+      </div>
+</body>
+<script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+<script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+<script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+<script>
+    function activarPallet(idP) {
+        {% for p in pallets %}
+        var div{{ loop.index}} = document.getElementById('checkPallet{{ loop.index}}');
+        var close{{ loop.index}} = document.getElementById('closePallet{{ loop.index}}');
+        {% endfor%}
+
+        switch(idP) {
+            {% for p in pallets %}
+                {% set indice = loop.index %}
+                {% set max = loop.length %}
+                case {{ indice }}:
+                {% for n in range(1,max+1) %}
+                    {% if indice == n %}
+                    document.getElementById('idPallet').value = {{ p['idPallet'] }}
+                    div{{ indice }}.checked = true;
+                    close{{ indice }}.disabled = false;
+                    {% else -%}
+                    div{{ n }}.checked = false;
+                    close{{ n }}.disabled = true;
+                    {% endif %}
+                {% endfor %}
+                    break;
+            {% endfor %}
+        default:
+          alert("hay un problema: No existe id.")
+        }
+    }
+</script>
+
+</html>
