@@ -25,7 +25,7 @@ class Pallet(DataBase):
 
     def crearPallet(self):
         self.cursor.execute("INSERT INTO " + DataBase.Tablas.pallets + " (idPallet, fechaInicio, estado) "
-                            "VALUES ((SELECT MAX(idPallet+1) FROM Prueba.dbo.pallets), ?, 'ABIERTO')", fecha())
+                            "VALUES ((SELECT MAX(idPallet+1) FROM " + DataBase.Tablas.pallets + "), ?, 'ABIERTO')", fecha())
         self.cursor.commit()
 
     def cerrarPallet(self, idPallet):
