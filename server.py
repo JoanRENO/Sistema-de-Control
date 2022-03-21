@@ -435,7 +435,10 @@ def reproceso(display):
                                piezas=Reproceso().buscar_om(om), modulo=Reproceso().buscar_om(om)[0]['PT_PRODUCTO']
                                    , display1=display1, display2=display2, display3=display3, check3="checked")
     if display[0] == "4":
-        flash("Por favor ingrese todos los campos")
+        if display[2] == "0":
+            flash("Este REPROCESO ya se a generado. ")
+        else:
+            flash("Por favor ingrese todos los campos")
         if display[1] == "1":
             return render_template("reproceso.html", display1="", display2="display:None;", display3="display:None;",
                                    check1="checked")
@@ -569,9 +572,11 @@ def generar_reproceso(tipo):
         if tipo == "ID":
             print(tipo)
             maq_select = request.form['maq_2']
-            print(maq_select)
             maq_detecto = request.form['maq_1']
             if request.form['maq_1'] != 'Maq' and request.form['maq_2'] != 'Maq' and request.form['idP'] != "":
+                ver = Reproceso().verificarReproceso(request.form['idP'])
+                if ver == 1:
+                    return redirect(url_for('reproceso', display="410"))
                 idPieza = request.form['idP']
                 info = Reproceso().info_final(idPieza)
                 Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], idPieza, maq_detecto, maq_select)
@@ -596,7 +601,7 @@ def generar_reproceso(tipo):
             maq_select = request.form['maquina2']
             maq_detecto = request.form['maquina1_1']
             cantidad = request.form['cantidad']
-            print("Cant: "+cantidad)
+            print("Cant: " + cantidad)
             if maq_detecto != 'Maquina' and op != 'Op' and color != 'Color' and espesor != 'Espesor' and pieza != 'Pieza' and maq_select != 'Maq' and cantidad != "":
                 ids_op = Reproceso().ids_op(op, color, espesor, maq_detecto, pieza, cantidad)
                 for x in ids_op:
@@ -611,18 +616,16 @@ def generar_reproceso(tipo):
                     Reproceso().imprimirEtiqueta()
                     Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
                                               info['RUTA_ASIGNADA'], info['OP'])
-                    #ruta = info['RUTA_ASIGNADA']
-                    #op = info['OP']
             else:
                 return redirect(url_for('reproceso', display="42"))
-            #Reproceso().log_reproceso(0, maq_select, pieza, maq_detecto, cantidad, ruta, op)
             return redirect(url_for('reproceso', display="2"))
         if tipo == "PRMO":
-            print(tipo)
             idprmo = request.form['id_prmo']
-            print(idprmo)
             maq_select = request.form['maq_om']
             if idprmo != "Id" and maq_select != 'Maq':
+                ver = Reproceso().verificarReproceso(idprmo)
+                if ver == 1:
+                    return redirect(url_for('reproceso', display="430"))
                 info = Reproceso().info_final(idprmo)
                 Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], idprmo, "ARMADO/EMBALADO", maq_select)
                 Reproceso().log_reproceso(idprmo, maq_select, info['PIEZA_DESCRIPCION'], "ARMARMADO/EMBALADO", 1, info['RUTA_ASIGNADA'], info['OP'])
@@ -653,7 +656,6 @@ def pallet(tipo):
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
     if tipo == "3":
         idPallet = request.values.get('idPallet')
-        print(idPallet, type(idPallet))
         if idPallet == '':
             flash('Por favor seleccione un pallet')
         else:

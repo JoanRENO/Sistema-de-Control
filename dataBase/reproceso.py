@@ -259,3 +259,22 @@ class Reproceso(DataBase):
                                         " = ? WHERE idPieza = ? ", 0, None, idPieza)
                     self.cursor.commit()
         self.close()
+
+    def verificarReproceso(self, idPieza):
+        self.cursor.execute("SELECT idPieza, maqDetecto FROM " + DataBase.Tablas.logReproceso + " WHERE idPieza = ?", idPieza)
+        aux = self.cursor.fetchone()
+        if aux is not None:
+            self.cursor.execute("SELECT RUTA_ASIGNADA FROM " + DataBase.Tablas.basePiezas + " WHERE idPieza = ?", idPieza)
+            ruta = self.cursor.fetchone()[0]
+            maqs = ruta.split('-')
+            if maqs[len(maqs) - 1] in ['LP', 'LM', 'LP.P', 'LC', 'LP.C']:
+                maq = maqs[len(maqs) - 2]
+            else:
+                maq = maqs[len(maqs) - 1]
+            self.cursor.execute("SELECT lectura" + maq + " FROM " + DataBase().Tablas.basePiezas + " WHERE idPieza = ?"
+                                , idPieza)
+            aux = self.cursor.fetchone()[0]
+            print(aux)
+            if aux == 0:
+                return 1
+
