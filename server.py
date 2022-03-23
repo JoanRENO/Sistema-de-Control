@@ -540,19 +540,23 @@ def maquina2():
         espesor = request.form['espesor']
         pieza = request.form['pieza']
         OutputArray = Reproceso().info_piezas(op, color, espesor, maquina, pieza)
-        print(OutputArray[0]['RUTA_ASIGNADA'])
-        print(maquina)
         ruta = OutputArray[0]['RUTA_ASIGNADA']
         maquinas = re.split("-", ruta)
         for x in maquinas:
             if maquina == x:
                 pos = maquinas.index(x)
         data = []
-        for x in maquinas:
-            data.append(x)
-            if maquinas.index(x) >= pos:
-                break
-        print(data, type(data))
+        if maquina in ["LP", "LM", "LC"]:
+            a = len(maquinas)
+            for x in maquinas:
+                data.append(x)
+                if maquinas.index(x) == (a-2):
+                    break
+        else:
+            for x in maquinas:
+                data.append(x)
+                if maquinas.index(x) >= pos:
+                    break
         return jsonify(data)
 
 
@@ -573,6 +577,7 @@ def generar_reproceso(tipo):
             print(tipo)
             maq_select = request.form['maq_2']
             maq_detecto = request.form['maq_1']
+            causa = request.form['causa1']
             if request.form['maq_1'] != 'Maq' and request.form['maq_2'] != 'Maq' and request.form['idP'] != "":
                 ver = Reproceso().verificarReproceso(request.form['idP'])
                 if ver == 1:
@@ -581,7 +586,7 @@ def generar_reproceso(tipo):
                 info = Reproceso().info_final(idPieza)
                 Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], idPieza, maq_detecto, maq_select)
                 Reproceso().log_reproceso(idPieza, maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
-                                          info['RUTA_ASIGNADA'], info['OP'])
+                                          info['RUTA_ASIGNADA'], info['OP'], causa)
                 Reproceso().generar_barcode(info['idPieza'], info['PIEZA_DESCRIPCION'], info['SO'],
                                             info['PRODUCTO_TERMINADO'], info['OP'], info['RUTA_ASIGNADA'],
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],
@@ -601,6 +606,7 @@ def generar_reproceso(tipo):
             maq_select = request.form['maquina2']
             maq_detecto = request.form['maquina1_1']
             cantidad = request.form['cantidad']
+            causa = request.form['causa2']
             print("Cant: " + cantidad)
             if maq_detecto != 'Maquina' and op != 'Op' and color != 'Color' and espesor != 'Espesor' and pieza != 'Pieza' and maq_select != 'Maq' and cantidad != "":
                 ids_op = Reproceso().ids_op(op, color, espesor, maq_detecto, pieza, cantidad)
@@ -615,20 +621,21 @@ def generar_reproceso(tipo):
                                                 info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select)
                     Reproceso().imprimirEtiqueta()
                     Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
-                                              info['RUTA_ASIGNADA'], info['OP'])
+                                              info['RUTA_ASIGNADA'], info['OP'], causa)
             else:
                 return redirect(url_for('reproceso', display="42"))
             return redirect(url_for('reproceso', display="2"))
         if tipo == "PRMO":
             idprmo = request.form['id_prmo']
             maq_select = request.form['maq_om']
+            causa = request.form['causa3']
             if idprmo != "Id" and maq_select != 'Maq':
                 ver = Reproceso().verificarReproceso(idprmo)
                 if ver == 1:
                     return redirect(url_for('reproceso', display="430"))
                 info = Reproceso().info_final(idprmo)
                 Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], idprmo, "ARMADO/EMBALADO", maq_select)
-                Reproceso().log_reproceso(idprmo, maq_select, info['PIEZA_DESCRIPCION'], "ARMARMADO/EMBALADO", 1, info['RUTA_ASIGNADA'], info['OP'])
+                Reproceso().log_reproceso(idprmo, maq_select, info['PIEZA_DESCRIPCION'], "ARMARMADO/EMBALADO", 1, info['RUTA_ASIGNADA'], info['OP'], causa)
                 Reproceso().generar_barcode(info['idPieza'], info['PIEZA_DESCRIPCION'], info['SO'],
                                             info['PRODUCTO_TERMINADO'], info['OP'], info['RUTA_ASIGNADA'],
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],

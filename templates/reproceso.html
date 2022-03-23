@@ -77,6 +77,19 @@
                         {% endfor %}
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="causa1">CAUSA: </label>
+                        <select name="causa1" data-live-search="true" id="causa1" class="form-control" required>
+                        <option selected value=""></option>
+                        <option>Faltante</option>
+                        <option>Error de corte</option>
+                        <option>Error de pegado</option>
+                        <option>Error de agujereado</option>
+                        <option>Error de ranurado</option>
+                        <option>Error de identificacion</option>
+                        <option>Otros</option>
+                        </select>
+                    </div>
                     <div>
                         <button type="submit" class="btn btn-primary">Imprimir reproceso</button>
                     </div>
@@ -99,7 +112,7 @@
                     <div class="form-group">
                     <select name="maquina1_1" data-live-search="true" id="maquina1_1" class="form-control" required>
                             {% set maquinas = ["GBN1", "SLC", "STF", "MRT1", "MRT2", "MRT3", "MRT4", "IDM",
-                            "RVR", "FTAL1", "KBT1", "KBT2", "VTP1", "LEA", "PRS", "ALU"] %}
+                            "RVR", "FTAL1", "KBT1", "KBT2", "VTP1", "LEA", "PRS", "ALU", "LM", "LP", "LC"] %}
                             <option selected>Maquina</option>
                             {% for maquinaRP in maquinas %}
                             <option value="{{maquinaRP}}">{{maquinaRP}}</option>
@@ -128,8 +141,23 @@
                         <label for="maquina2">MAQUINA DONDE DEBE COMENZAR EL REPROCESO: </label>
                         <select name="maquina2" data-live-search="true" id="maquina2" class="form-control" required></select>
                     </div>
+                    <div class="form-group">
+                        <label for="causa2">CAUSA: </label>
+                        <select name="causa2" data-live-search="true" id="causa2" class="form-control" required>
+                        <option selected value=""></option>
+                        <option>Faltante</option>
+                        <option>Error de corte</option>
+                        <option>Error de pegado</option>
+                        <option>Error de agujereado</option>
+                        <option>Error de ranurado</option>
+                        <option>Error de identificacion</option>
+                        <option>Otros</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">Solicitar Reproceso</button>
+                    <br>
                 </form>
+                <br><br>
             </div>
 
             <div id="form_reproceso3" style={{ display3 }}>
@@ -189,6 +217,19 @@
                         {% for maq in maqs_om %}
                         <option value="{{maq}}">{{maq}}</option>
                         {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="causa3">CAUSA: </label>
+                        <select name="causa3" data-live-search="true" id="causa3" class="form-control" required>
+                        <option selected value=""></option>
+                        <option>Faltante</option>
+                        <option>Error de corte</option>
+                        <option>Error de pegado</option>
+                        <option>Error de agujereado</option>
+                        <option>Error de ranurado</option>
+                        <option>Error de identificacion</option>
+                        <option>Otros</option>
                         </select>
                     </div>
                     <div>
