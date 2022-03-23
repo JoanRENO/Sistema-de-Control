@@ -645,15 +645,18 @@ def generar_reproceso(tipo):
 @app.route("/pallet/<string:tipo>", methods=["POST", "GET"])
 def pallet(tipo):
     if tipo == "0":
-        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
+                               modulos=Pallet().getTablaModulosPallets(), indicador=int(1))
     if tipo == "1":
         Pallet().crearPallet()
-        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
+                               modulos=Pallet().getTablaModulosPallets(), indicador=int(1))
     if tipo == "2":
         idPallet = request.values.get('cerrar')
         print(idPallet)
         Pallet().cerrarPallet(idPallet)
-        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
+                               modulos=Pallet().getTablaModulosPallets(), indicador=int(1))
     if tipo == "3":
         idPallet = request.values.get('idPallet')
         if idPallet == '':
@@ -669,12 +672,14 @@ def pallet(tipo):
                 flash('El modulo no a sido leido', 'danger')
             else:
                 flash('Modulo inexistente', 'danger')
-        return render_template('pallet.html', pallets=Pallet().getTablaPallets(), modulos=Pallet().getTablaModulosPallets())
+        return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
+                               modulos=Pallet().getTablaModulosPallets(), indicador=Pallet().getIndicador(idPallet))
     if tipo[0] == "4":
         om = request.values.get('idOM')
+        indicador = Pallet().getIndicador(om)
         Pallet().eliminarModulo(om)
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets())
+                               modulos=Pallet().getTablaModulosPallets(), indicador=indicador)
 
 
 @app.route("/imprimir_pallet")
@@ -689,7 +694,7 @@ def PL(numPallet, op):
     cantidad = str((cant/14)+1)[0]
     return render_template('PL.html', numPallet=numPallet, tabla=tabla, OP=tabla[0]['OP'],
                            fInicio=tabla[0]['fechaInicio'], fFin=tabla[0]['fechaFin']
-                           ,acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=int(cantidad), total=cant)
+                           , acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=int(cantidad), total=cant)
 
 
 serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!

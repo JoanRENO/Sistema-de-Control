@@ -70,13 +70,13 @@
                         <div>
                         <h2 class="bg-secondary text-white">
                             <input type="checkbox" id="checkPallet{{ loop.index }}" name="checkPallet{{ loop.index }}" onchange="activarPallet({{ loop.index }})"
-                                   {% if loop.index == 1 %}
+                                   {% if loop.index == indicador %}
                                    value="1" checked>
                                     <script> document.getElementById('idPallet').value = {{ p['idPallet'] }} </script>
                                    {% else %}
                                     value="0">
                                    {% endif %}
-                            Nro de Pallet: {{ p['idPallet'] }} | Fecha Inicio: {{ p['fechaInicio']}}</h2>
+                            Acuerdo: {{ p['acuerdo'] }} | OP: {{ p['op']}} | PL-{{ p['idPallet'] }}</h2>
                         </div>
                         <table class="table table-dark table-striped">
                             <thead>
@@ -108,7 +108,7 @@
                         <form action={{url_for('pallet', tipo = "2")}} method="GET">
                             <input id="cerrar{{ loop.index }}" name="cerrar" style="display:None;" value={{ p['idPallet'] }}>
                             <button type="submit" class="btn btn-danger" id="closePallet{{ loop.index }}"
-                            {% if loop.index == 1 %}
+                            {% if loop.index == indicador %}
                                    >
                                    {% else %}
                                     disabled>

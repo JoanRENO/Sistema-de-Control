@@ -54,7 +54,8 @@ class Pallet(DataBase):
             return 0
 
     def agregarModulo(self, OM, idPallet):
-        self.cursor.execute("SELECT idModulo, idOrdenManuFactura, PT_PRODUCTO, SO, OP FROM " + DataBase.Tablas.baseModulos +
+        self.verificarAcuerdo(idPallet, OM)
+        self.cursor.execute("SELECT idModulo, idOrdenManuFactura, PT_PRODUCTO, SO FROM " + DataBase.Tablas.baseModulos +
                             " WHERE idOrdenManufactura = ? ", OM)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -62,8 +63,8 @@ class Pallet(DataBase):
         for record in records:
             OutputArray.append(dict(zip(columnNames, record)))
         for x in OutputArray:
-            self.cursor.execute("INSERT INTO " + DataBase.Tablas.modulosPallets + " (idModulo, idPallet, idOrdenManuFactura, PT_PRODUCTO, SO, OP, fecha) "
-                                "VALUES (?, ?, ?, ?, ?, ?, ?)", x['idModulo'], idPallet, OM, x['PT_PRODUCTO'], x['SO'], x['OP'], fecha())
+            self.cursor.execute("INSERT INTO " + DataBase.Tablas.modulosPallets + " (idModulo, idPallet, idOrdenManuFactura, PT_PRODUCTO, SO, fecha) "
+                                "VALUES (?, ?, ?, ?, ?, ?)", x['idModulo'], idPallet, OM, x['PT_PRODUCTO'], x['SO'], fecha())
             self.cursor.commit()
 
     def eliminarModulo(self, OM):
@@ -77,11 +78,11 @@ class Pallet(DataBase):
       ,fechaInicio
       ,fechaFin
       ,estado
-	  , mp.OP
+	  ,OP
 	  , COUNT(p.idPallet) AS CANT_MODULOS
       FROM """ + DataBase.Tablas.pallets + """ p INNER JOIN """ + DataBase.Tablas.modulosPallets + """ mp ON p.idPallet = mp.idPallet 
       WHERE estado = 'CERRADO' 
-      GROUP BY P.idPallet, P.fechaInicio, P.fechaFin, P.estado, MP.OP
+      GROUP BY P.idPallet, P.fechaInicio, P.fechaFin, P.estado, OP
       ORDER BY fechaFin DESC
         """)
         records = self.cursor.fetchall()
@@ -98,7 +99,7 @@ class Pallet(DataBase):
       ,mp.[idPallet]
       ,mp.[PT_PRODUCTO]
       ,mp.[SO]
-      ,mp.[OP]
+      ,p.[OP]
 	  ,p.fechaInicio
 	  ,p.fechaFin
   FROM """ + DataBase.Tablas.modulosPallets + """ mp INNER JOIN """ + DataBase.Tablas.pallets + """ p ON mp.idPallet = p.idPallet 
@@ -132,5 +133,36 @@ class Pallet(DataBase):
             aux2.save(ruta)
             barcodes.append(ruta[14:])
         return acuerdos, ambientes, barcodes, i
+
+    def verificarAcuerdo(self, idPallet, om):
+        self.cursor.execute("SELECT COUNT(idModulo) FROM " + DataBase.Tablas.modulosPallets + " WHERE idPallet = ?"
+                            , idPallet)
+        cant = self.cursor.fetchone()[0]
+        if cant == 0:
+            self.cursor.execute("SELECT SO, OP FROM " + DataBase.Tablas.baseModulos + " WHERE idOrdenManufactura = ?"
+                                , om)
+            aux = self.cursor.fetchone()
+            so = aux[0]
+            acuerdo = so[:so.find(' ')]
+            op = aux[1]
+            self.cursor.execute("UPDATE " + DataBase.Tablas.pallets + " SET acuerdo = ?, op = ? WHERE idPallet = ?",
+                                acuerdo, op, idPallet)
+            self.cursor.commit()
+
+    def getIndicador(self, idPieza):
+        if "pr/mo" in str(idPieza).lower():
+            print(idPieza)
+            self.cursor.execute("SELECT idPallet FROM " + DataBase.Tablas.modulosPallets + " WHERE idOrdenManufactura"
+                                " = ? ", idPieza)
+            idPieza = self.cursor.fetchone()[0]
+        self.cursor.execute("SELECT COUNT(idPallet) as indicador FROM " + DataBase.Tablas.pallets +
+                            " WHERE estado = 'ABIERTO' AND idPallet <= ?", idPieza)
+        indicador = self.cursor.fetchone()[0]
+        self.close()
+        return indicador
+
+
+
+
 
 
