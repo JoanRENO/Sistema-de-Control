@@ -192,10 +192,10 @@ class Reproceso(DataBase):
         im.paste(txt1_1, (680, 30))
 
         # INFO1_2
-        txt1_1 = Image.new('RGB', (780, 100), (0, 0, 0))
+        txt1_1 = Image.new('RGB', (300, 140), (0, 0, 0))
         d = ImageDraw.Draw(txt1_1)
-        d.text((0, 6), maq_detecto, font=fnt14_1, fill=(255, 255, 255))
-        im.paste(txt1_1, (680, 130))
+        d.text((100, 6), maq_detecto, font=fnt14_1, fill=(255, 255, 255))
+        im.paste(txt1_1, (720, 160))
 
         # ORDEN MANUFACTURA
         img = code128.image(idModulo)
