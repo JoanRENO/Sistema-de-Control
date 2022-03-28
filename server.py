@@ -592,7 +592,7 @@ def generar_reproceso(tipo):
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],
                                             info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                             info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
-                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select)
+                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto)
             else:
                 return redirect(url_for('reproceso', display="41"))
             Reproceso().imprimirEtiqueta()
@@ -618,7 +618,7 @@ def generar_reproceso(tipo):
                                                 info['PIEZA_NOMBREMODOSUSTENTACION'],
                                                 info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                                 info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
-                                                info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select)
+                                                info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto)
                     Reproceso().imprimirEtiqueta()
                     Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
                                               info['RUTA_ASIGNADA'], info['OP'], causa)
@@ -641,7 +641,7 @@ def generar_reproceso(tipo):
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],
                                             info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                             info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
-                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select)
+                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, "LINEA")
                 Reproceso().imprimirEtiqueta()
             else:
                 return redirect(url_for('reproceso', display="43"))

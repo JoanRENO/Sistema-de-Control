@@ -159,7 +159,7 @@ class Reproceso(DataBase):
 
     def generar_barcode(self, idPieza, PIEZA_DESCRIPCION, SO, PRODUCTO_TERMINADO, OP, RUTA_ASIGNADA, idModulo,
                         PIEZA_CODIGORANURA, TAPACANTO_DERECHO, TAPACANTO_INFERIOR, TAPACANTO_IZQUIERDO,
-                        TAPACANTO_SUPERIOR, PIEZA_CODIGO, maq_select):
+                        TAPACANTO_SUPERIOR, PIEZA_CODIGO, maq_select, maq_detecto):
         # generar las fonts
         fnt14 = ImageFont.truetype('static/fuente/FontsFree-Net-arial-bold.ttf', 56)
         fnt14_1 = ImageFont.truetype('static/fuente/FontsFree-Net-arial-bold.ttf', 46)
@@ -190,6 +190,12 @@ class Reproceso(DataBase):
         d.text((0, 6), OP, font=fnt14_1, fill=(0, 0, 0))
         d.text((100, 66), RUTA_ASIGNADA, font=fnt11, fill=(0, 0, 0))
         im.paste(txt1_1, (680, 30))
+
+        # INFO1_2
+        txt1_1 = Image.new('RGB', (780, 100), (0, 0, 0))
+        d = ImageDraw.Draw(txt1_1)
+        d.text((0, 6), maq_detecto, font=fnt14_1, fill=(255, 255, 255))
+        im.paste(txt1_1, (680, 130))
 
         # ORDEN MANUFACTURA
         img = code128.image(idModulo)
