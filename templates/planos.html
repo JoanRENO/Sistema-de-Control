@@ -16,14 +16,14 @@
     <br>
     <a href="/"><strong>Volver al menu</strong></a>
     <br>
-    <h2 class="text-center">MULTIFAMILIAR</h2>
+    <h2 class="text-center">{{ produccion[0]['Acuerdo/Tipo de pedido']}}</h2>
     <br>
     <progress id="progreso_Multi" value="{{ produccion[0].Cantidad }}" max="{{ produccion[0].Objetivo }}"></progress>
     <br>
     <h2 id="multifamiliar" for="progreso_Multi"> {{ produccion[0].Cantidad }} de {{ produccion[0].Objetivo }}</h2>
     <br>
     <br>
-    <h2>UNIFAMILIAR</h2>
+    <h2>{{ produccion[1]['Acuerdo/Tipo de pedido']}}</h2>
     <br>
     <progress id="progreso_Uni" value="{{ produccion[1].Cantidad }}" max="{{ produccion[1].Objetivo }}"></progress>
     <br>

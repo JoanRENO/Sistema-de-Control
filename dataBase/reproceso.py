@@ -275,6 +275,11 @@ class Reproceso(DataBase):
     def actualizarTabla(self, ruta, idPieza, maq_detecto, maq_select):
         maquinas = re.split("-", ruta)
         for x in maquinas:
+            if x == "LP.C" or x == "LP.P":
+                maquinas[maquinas.index(x)] = "LP"
+        print(maquinas)
+        print(maq_detecto)
+        for x in maquinas:
             if maq_detecto == x:
                 pos = maquinas.index(x)
         if maq_detecto == "ARMADO/EMBALADO":
