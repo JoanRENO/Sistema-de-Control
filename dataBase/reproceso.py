@@ -277,6 +277,8 @@ class Reproceso(DataBase):
         for x in maquinas:
             if x == "LP.C" or x == "LP.P":
                 maquinas[maquinas.index(x)] = "LP"
+        if maq_detecto == "LP.C" or maq_detecto == "LP.P":
+            maq_detecto = "LP"
         print(maquinas)
         print(maq_detecto)
         for x in maquinas:
