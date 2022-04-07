@@ -310,7 +310,7 @@ class Reproceso(DataBase):
                 data2.append(x)
         for maq in data2:
             if maq in ['GBN1', 'SLC', 'NST', 'GBM', 'STF', 'IDM', 'MRT1', 'MRT2', 'MRT3', 'MRT4', 'RVR', 'KBT1',
-                       'KBT2', 'CHN', 'FTAL1', 'VTP1', 'LEA', 'PRS', 'ALU']:
+                       'KBT2', 'CHN', 'FTAL1', 'VTP1', 'LEA', 'PRS', 'ALU', 'TGO', 'FAB']:
                     self.cursor.execute("UPDATE " + DataBase.Tablas.basePiezas + " SET lectura" + maq + " = ?, fechaLectura" + maq +
                                         " = ? WHERE idPieza = ? ", 0, None, idPieza)
                     self.cursor.commit()

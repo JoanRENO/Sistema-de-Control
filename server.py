@@ -637,7 +637,7 @@ def generar_reproceso(tipo):
                     return redirect(url_for('reproceso', display="430"))
                 info = Reproceso().info_final(idprmo)
                 Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], idprmo, "ARMADO/EMBALADO", maq_select)
-                Reproceso().log_reproceso(idprmo, maq_select, info['PIEZA_DESCRIPCION'], "ARMARMADO/EMBALADO", 1, info['RUTA_ASIGNADA'], info['OP'], causa)
+                Reproceso().log_reproceso(idprmo, maq_select, info['PIEZA_DESCRIPCION'], "ARMADO/EMBALADO", 1, info['RUTA_ASIGNADA'], info['OP'], causa)
                 Reproceso().generar_barcode(info['idPieza'], info['PIEZA_DESCRIPCION'], info['SO'],
                                             info['PRODUCTO_TERMINADO'], info['OP'], info['RUTA_ASIGNADA'],
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],
