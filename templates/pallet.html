@@ -65,59 +65,31 @@
                                 <button type="submit" class="btn btn-primary">Crear Pallet</button>
                             </form>
                         </div>
-                <br>
+
+                <hr>
+                        <form>
+                        <div class="form-group">
+                        <label for="lista_pallet">SELECCIONE PALLET : </label>
+                        <select name="lista_pallet" data-live-search="true" id="lista_pallet" class="form-control selectpicker" required>
+                        {% if idPallet2 == 0 %}
+                        <option selected></option>
                         {% for p in pallets %}
-                        <div>
-                        <h2 class="bg-secondary text-white">
-                            <input type="checkbox" id="checkPallet{{ loop.index }}" name="checkPallet{{ loop.index }}" onchange="activarPallet({{ loop.index }})"
-                                   {% if loop.index == indicador %}
-                                   value="1" checked>
-                                    <script> document.getElementById('idPallet').value = {{ p['idPallet'] }} </script>
-                                   {% else %}
-                                    value="0">
-                                   {% endif %}
-                            Acuerdo: {{ p['acuerdo'] }} | OP: {{ p['op']}} | PL-{{ p['idPallet'] }}</h2>
-                        </div>
-                        <table class="table table-dark table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col">ORDEN MANUFACTURA</th>
-                                    <th scope="col">DECRIPCION</th>
-                                    <th scope="col"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            {% for mod in modulos %}
-                            {% if mod['idPallet'] == p['idPallet'] %}
-                                <tr>
-                                    <td>{{ mod['idOrdenManufactura'] }}</td>
-                                    <td>{{ mod['PT_PRODUCTO'] }}</td>
-                                    <td>
-                                        <form action={{url_for('pallet', tipo = "4" )}} method="get">
-                                        <div class="form-group">
-                                            <input style="display:None;" id="idOM" name="idOM" value={{ mod['idOrdenManufactura'] }}>
-                                            <button class="btn btn-danger" type="submit" ><strong>X</strong></button>
-                                        </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            {% endif %}
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                        <form action={{url_for('pallet', tipo = "2")}} method="GET">
-                            <input id="cerrar{{ loop.index }}" name="cerrar" style="display:None;" value={{ p['idPallet'] }}>
-                            <button type="submit" class="btn btn-danger" id="closePallet{{ loop.index }}"
-                            {% if loop.index == indicador %}
-                                   >
-                                   {% else %}
-                                    disabled>
-                                   {% endif %}
-                                    Cerrar</button>
-                        </form>
-                        <hr>
+                        <option value="{{ p['idPallet'] }}">Acuerdo: {{ p['acuerdo'] }} | OP: {{ p['op']}} | PL-{{ p['idPallet'] }}</option>
                         {% endfor %}
-                    </div>
+                        {% else %}
+                        {% for p in pallets %}
+                        <option value="{{ p['idPallet'] }}"
+                        {% if idPallet2 == p['idPallet'] %}
+                            selected
+                        {% endif %}
+                        >Acuerdo: {{ p['acuerdo'] }} | OP: {{ p['op']}} | PL-{{ p['idPallet'] }}</option>
+                        {% endfor %}
+                        {% endif %}
+                        </select>
+                        </div>
+                        </form>
+                        <div id="tabla" name="tabla">
+                        </div>
                 </div>
             </div>
       </div>
@@ -125,34 +97,69 @@
 <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
 <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
 <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
-<script>
-    function activarPallet(idP) {
-        {% for p in pallets %}
-        var div{{ loop.index}} = document.getElementById('checkPallet{{ loop.index}}');
-        var close{{ loop.index}} = document.getElementById('closePallet{{ loop.index}}');
-        {% endfor%}
 
-        switch(idP) {
-            {% for p in pallets %}
-                {% set indice = loop.index %}
-                {% set max = loop.length %}
-                case {{ indice }}:
-                {% for n in range(1,max+1) %}
-                    {% if indice == n %}
-                    document.getElementById('idPallet').value = {{ p['idPallet'] }}
-                    div{{ indice }}.checked = true;
-                    close{{ indice }}.disabled = false;
-                    {% else -%}
-                    div{{ n }}.checked = false;
-                    close{{ n }}.disabled = true;
-                    {% endif %}
-                {% endfor %}
-                    break;
-            {% endfor %}
-        default:
-          alert("hay un problema: No existe id.")
+<script>
+    $(document).ready(function () {
+        var idPallet = $("#lista_pallet").val();
+        $("#idPallet").val($("#lista_pallet").val());
+        load_data("OP", idPallet);
+        $("#lista_pallet").selectpicker();
+
+        function load_data(type, idPallet) {
+            $.ajax({
+                url: "/getTablaPallet",
+                method: "POST",
+                data: { type: type, idPallet: idPallet },
+                dataType: "json",
+                success: function (data) { //alert(maquina)
+                    var html = '<h2 class="bg-secondary text-white"> BO: ' + data[0]['acuerdo'] +
+                    ' | OP: ' + data[0]['op'] + ' | PL-' + data[0]['idPallet'] + ' </h2>' +
+
+                    '<table class="table table-dark table-striped">' +
+                            '<thead>'+
+                                '<tr>' +
+                                    '<th scope="col">ORDEN MANUFACTURA</th>' +
+                                    '<th scope="col">DECRIPCION</th>' +
+                                    '<th scope="col">' +
+                                    ' <form action={{url_for('pallet', tipo = "2")}} method="GET">' +
+                            '<input name="cerrar" style="display:None;" value=' + data[0]['idPallet'] + '>' +
+                            '<button type="submit" class="btn btn-danger" id="cerrarPallet">Cerrar</button>' +
+                            '</form>' +
+                                    '</th>' +
+                                '</tr>' +
+                            '</thead>';
+                    for (var count = 0; count < data.length; count++) {
+                        if (data[count]['idOrdenManufactura'] != null) {
+                        html += '<tr>' +
+                                '<td>' + data[count]['idOrdenManufactura'] + '</td>' +
+                                '<td>' + data[count]['PT_PRODUCTO'] + '</td>' +
+                                '<td> <form action={{url_for('pallet', tipo = "4" )}} method="get">' +
+                                '<div class="form-group">' +
+                                '<input style="display:None;" id="idOM" name="idOM" value=' + data[count]['idOrdenManufactura'] + '>' +
+                                            '<button class="btn btn-danger" type="submit" ><strong>X</strong></button>' +
+                                            '</div> </form> </td> </tr>'
+                        }
+                    };
+                    html += '</tbody></table>'
+
+                    if (type == "MAQ") {
+                        $("#lista_pallet").html(html);
+                        $("#lista_pallet").selectpicker("refresh");
+                    } else {
+                        $("#tabla").html(html);
+                        $("#tabla").selectpicker("refresh");
+                    }
+                },
+            });
         }
-    }
+
+        $(document).on("change", "#lista_pallet", function () {
+            var idPallet = $("#lista_pallet").val();
+            $("#idPallet").val($("#lista_pallet").val());
+            load_data("OP", idPallet);
+        });
+
+    });
 </script>
 
 </html>

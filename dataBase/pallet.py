@@ -12,6 +12,28 @@ class Pallet(DataBase):
             OutputArray.append(dict(zip(columnNames, record)))
         return OutputArray
 
+    def getTablaPallet(self, idPallet):
+        self.cursor.execute("""
+        SELECT p.idPallet
+      ,[fechaInicio]
+      ,[fechaFin]
+      ,[estado]
+      ,[acuerdo]
+      ,[op]
+	  ,[PT_PRODUCTO]
+      ,[idOrdenManufactura]
+      FROM """ + DataBase.Tablas.pallets + """ p
+      LEFT JOIN """ + DataBase.Tablas.modulosPallets + """ mp ON mp.idPallet = p.idPallet
+      WHERE p.idPallet = ? 
+      ORDER BY fecha
+        """, idPallet)
+        records = self.cursor.fetchall()
+        OutputArray = []
+        columnNames = [column[0] for column in self.cursor.description]
+        for record in records:
+            OutputArray.append(dict(zip(columnNames, record)))
+        return OutputArray
+
     def getTablaModulosPallets(self):
         self.cursor.execute("SELECT mp.idModulo, mp.idOrdenManufactura, mp.idPallet, mp.PT_PRODUCTO, p.estado FROM "
                             + DataBase.Tablas.modulosPallets + " mp INNER JOIN " + DataBase.Tablas.pallets +
@@ -149,17 +171,12 @@ class Pallet(DataBase):
                                 acuerdo, op, idPallet)
             self.cursor.commit()
 
-    def getIndicador(self, idPieza):
-        if "pr/mo" in str(idPieza).lower():
-            print(idPieza)
-            self.cursor.execute("SELECT idPallet FROM " + DataBase.Tablas.modulosPallets + " WHERE idOrdenManufactura"
-                                " = ? ", idPieza)
-            idPieza = self.cursor.fetchone()[0]
-        self.cursor.execute("SELECT COUNT(idPallet) as indicador FROM " + DataBase.Tablas.pallets +
-                            " WHERE estado = 'ABIERTO' AND idPallet <= ?", idPieza)
-        indicador = self.cursor.fetchone()[0]
-        self.close()
-        return indicador
+    def getIndicador(self, om):
+        print(om)
+        self.cursor.execute("SELECT idPallet FROM " + DataBase.Tablas.modulosPallets + " WHERE idOrdenManufactura"
+                            " = ? ", om)
+        idPallet = self.cursor.fetchone()[0]
+        return idPallet
 
 
 

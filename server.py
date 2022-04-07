@@ -592,7 +592,7 @@ def generar_reproceso(tipo):
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],
                                             info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                             info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
-                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto)
+                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto, "")
             else:
                 return redirect(url_for('reproceso', display="41"))
             Reproceso().imprimirEtiqueta()
@@ -606,6 +606,8 @@ def generar_reproceso(tipo):
             maq_select = request.form['maquina2']
             maq_detecto = request.form['maquina1_1']
             cantidad = request.form['cantidad']
+            lado = request.form['lado']
+            print(lado)
             causa = request.form['causa2']
             print("Cant: " + cantidad)
             if maq_detecto != 'Maquina' and op != 'Op' and color != 'Color' and espesor != 'Espesor' and pieza != 'Pieza' and maq_select != 'Maq' and cantidad != "":
@@ -618,7 +620,7 @@ def generar_reproceso(tipo):
                                                 info['PIEZA_NOMBREMODOSUSTENTACION'],
                                                 info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                                 info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
-                                                info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto)
+                                                info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto, lado)
                     Reproceso().imprimirEtiqueta()
                     Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
                                               info['RUTA_ASIGNADA'], info['OP'], causa)
@@ -641,7 +643,7 @@ def generar_reproceso(tipo):
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],
                                             info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                             info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
-                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, "LINEA")
+                                            info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, "LINEA", "")
                 Reproceso().imprimirEtiqueta()
             else:
                 return redirect(url_for('reproceso', display="43"))
@@ -653,17 +655,17 @@ def generar_reproceso(tipo):
 def pallet(tipo):
     if tipo == "0":
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), indicador=int(1))
+                               modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
     if tipo == "1":
         Pallet().crearPallet()
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), indicador=int(1))
+                               modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
     if tipo == "2":
         idPallet = request.values.get('cerrar')
         print(idPallet)
         Pallet().cerrarPallet(idPallet)
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), indicador=int(1))
+                               modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
     if tipo == "3":
         idPallet = request.values.get('idPallet')
         if idPallet == '':
@@ -679,14 +681,15 @@ def pallet(tipo):
                 flash('El modulo no a sido leido', 'danger')
             else:
                 flash('Modulo inexistente', 'danger')
+        print(idPallet)
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), indicador=Pallet().getIndicador(idPallet))
+                               modulos=Pallet().getTablaModulosPallets(), idPallet2=int(idPallet))
     if tipo[0] == "4":
         om = request.values.get('idOM')
         indicador = Pallet().getIndicador(om)
         Pallet().eliminarModulo(om)
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), indicador=indicador)
+                               modulos=Pallet().getTablaModulosPallets(), idPallet2=indicador)
 
 
 @app.route("/imprimir_pallet")
@@ -702,6 +705,14 @@ def PL(numPallet, op):
     return render_template('PL.html', numPallet=numPallet, tabla=tabla, OP=tabla[0]['OP'],
                            fInicio=tabla[0]['fechaInicio'], fFin=tabla[0]['fechaFin']
                            , acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=int(cantidad), total=cant)
+
+@app.route('/getTablaPallet', methods=["POST", "GET"])
+def getTablaPallet():
+    if request.method == 'POST':
+        idPallet = request.form['idPallet']
+        print(idPallet)
+        data = Pallet().getTablaPallet(idPallet)
+    return jsonify(data)
 
 
 serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!

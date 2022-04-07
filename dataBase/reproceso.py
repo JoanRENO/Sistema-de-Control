@@ -79,19 +79,21 @@ class Reproceso(DataBase):
 
     def info_piezas(self, op, color, espesor, maquina, pieza):
         if maquina in ["LM", "LP", "LC"]:
-            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD, RUTA_ASIGNADA FROM " + DataBase.Tablas.basePiezas +
+            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD, RUTA_ASIGNADA, PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
                                 " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? "
-                                " GROUP BY RUTA_ASIGNADA", op, color, espesor, pieza)
+                                " GROUP BY RUTA_ASIGNADA, PIEZA_DESCRIPCION", op, color, espesor, pieza)
         else:
-            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD, RUTA_ASIGNADA FROM " + DataBase.Tablas.basePiezas +
+            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD, RUTA_ASIGNADA, PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
                                 " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND lectura" + maquina + " = 0 "
-                                "GROUP BY RUTA_ASIGNADA", op, color, espesor, pieza)
+                                "GROUP BY RUTA_ASIGNADA, PIEZA_DESCRIPCION", op, color, espesor, pieza)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
         for record in records:
+            if 'LATERAL' in record[2][:16]:
+                record[2] = 'LATERAL'
             OutputArray.append(dict(zip(columnNames, record)))
         self.close()
         return OutputArray
@@ -159,7 +161,7 @@ class Reproceso(DataBase):
 
     def generar_barcode(self, idPieza, PIEZA_DESCRIPCION, SO, PRODUCTO_TERMINADO, OP, RUTA_ASIGNADA, idModulo,
                         PIEZA_CODIGORANURA, TAPACANTO_DERECHO, TAPACANTO_INFERIOR, TAPACANTO_IZQUIERDO,
-                        TAPACANTO_SUPERIOR, PIEZA_CODIGO, maq_select, maq_detecto):
+                        TAPACANTO_SUPERIOR, PIEZA_CODIGO, maq_select, maq_detecto, lado):
         # generar las fonts
         fnt14 = ImageFont.truetype('static/fuente/FontsFree-Net-arial-bold.ttf', 56)
         fnt14_1 = ImageFont.truetype('static/fuente/FontsFree-Net-arial-bold.ttf', 46)
@@ -174,9 +176,9 @@ class Reproceso(DataBase):
 
         # ID PIEZA
         img2 = code128.image(idPieza)
-        a = img2.resize((520, 180))
+        a = img2.resize((590, 180))
         nImg2 = a.transpose(Image.ROTATE_90)
-        im.paste(nImg2, (1300, 160))
+        im.paste(nImg2, (1300, 120))
 
         #INFO1
         txt = Image.new('RGB', (660, 60), (0, 0, 0))
@@ -197,6 +199,11 @@ class Reproceso(DataBase):
         d.text((100, 6), maq_detecto, font=fnt14_1, fill=(255, 255, 255))
         im.paste(txt1_1, (720, 160))
 
+        txt1_1 = Image.new('RGB', (200, 140), (255, 255, 255))
+        d = ImageDraw.Draw(txt1_1)
+        d.text((2, 6), str(idPieza), font=fnt14_1, fill=(0, 0, 0))
+        im.paste(txt1_1, (1040, 160))
+
         # ORDEN MANUFACTURA
         img = code128.image(idModulo)
         im.paste(img, (140, 100))
@@ -205,16 +212,19 @@ class Reproceso(DataBase):
         txt2 = Image.new('RGB', (1250, 400), (255, 255, 255))
         d = ImageDraw.Draw(txt2)
         d.text((280, 2), idModulo, font=fnt10, fill=(0, 0, 0))
-        if len(PIEZA_DESCRIPCION) > 68:
+        if len(PIEZA_DESCRIPCION) > 64:
             d.text((2, 52), PIEZA_DESCRIPCION[:64], font=fnt10, fill=(0, 0, 0))
-            d.text((2, 102), PIEZA_DESCRIPCION[64:], font=fnt10, fill=(0, 0, 0))
+            d.text((2, 102), PIEZA_DESCRIPCION[64:] + ' ' + lado, font=fnt10, fill=(0, 0, 0))
         else:
-            d.text((2, 52), PIEZA_DESCRIPCION, font=fnt10, fill=(0, 0, 0))
+            d.text((2, 52), PIEZA_DESCRIPCION + ' ' + lado, font=fnt10, fill=(0, 0, 0))
         d.text((2, 150), SO, font=fnt11, fill=(0, 0, 0))
-        if len(PRODUCTO_TERMINADO) > 68:
+        if len(PRODUCTO_TERMINADO) > 128:
             d.text((2, 200), PRODUCTO_TERMINADO[:64], font=fnt10, fill=(0, 0, 0))
             d.text((2, 250), PRODUCTO_TERMINADO[64:128], font=fnt10, fill=(0, 0, 0))
             d.text((2, 300), PRODUCTO_TERMINADO[128:], font=fnt10, fill=(0, 0, 0))
+        elif len(PRODUCTO_TERMINADO) > 64 and len(PRODUCTO_TERMINADO) <= 128:
+            d.text((2, 200), PRODUCTO_TERMINADO[:64], font=fnt10, fill=(0, 0, 0))
+            d.text((2, 250), PRODUCTO_TERMINADO[64:], font=fnt10, fill=(0, 0, 0))
         else:
             d.text((2, 200), PRODUCTO_TERMINADO, font=fnt10, fill=(0, 0, 0, 180))
         d.text((70, 350), PIEZA_CODIGO, font=fnt10, fill=(0, 0, 0))
@@ -225,10 +235,10 @@ class Reproceso(DataBase):
         im.paste(outPLANO, (44, 600))
 
         #INFO4
-        txt4 = Image.new('RGB', (200, 50), (255, 255, 255))
-        d = ImageDraw.Draw(txt4)
-        d.text((2, 2), str(idPieza), font=fnt10, fill=(0, 0, 0))
-        im.paste(txt4, (1260, 110))
+        #txt4 = Image.new('RGB', (200, 50), (255, 255, 255))
+        #d = ImageDraw.Draw(txt4)
+        #d.text((2, 2), str(idPieza), font=fnt10, fill=(0, 0, 0))
+        #im.paste(txt4, (1260, 110))
 
         #INFO5
         txt5 = Image.new('RGB', (600, 140), (255, 255, 255))

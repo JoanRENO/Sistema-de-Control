@@ -87,6 +87,8 @@
                         <option>Error de agujereado</option>
                         <option>Error de ranurado</option>
                         <option>Error de identificacion</option>
+                        <option>Rotura</option>
+                        <option>Rotura DESPACHO</option>
                         <option>Otros</option>
                         </select>
                     </div>
@@ -151,6 +153,8 @@
                         <option>Error de agujereado</option>
                         <option>Error de ranurado</option>
                         <option>Error de identificacion</option>
+                        <option>Rotura</option>
+                        <option>Rotura DESPACHO</option>
                         <option>Otros</option>
                         </select>
                     </div>
@@ -229,6 +233,8 @@
                         <option>Error de agujereado</option>
                         <option>Error de ranurado</option>
                         <option>Error de identificacion</option>
+                        <option>Rotura</option>
+                        <option>Rotura DESPACHO</option>
                         <option>Otros</option>
                         </select>
                     </div>
@@ -479,8 +485,18 @@
                     var html = "";
                     html += '<label value="' + data[0].CANTIDAD + '"> CANTIDAD DE PIEZAS: ' + data[0].CANTIDAD +
                     ' | RUTA DE PIEZAS: ' + data[0].RUTA_ASIGNADA + "</label>";
+                    if (data[0].PIEZA_DESCRIPCION == 'LATERAL' ) {
+                    html +=  '<div>' +
+                    '<label>LADO: &nbsp; </label>' +
+                    '<input type="radio" id="lado" name="lado" value="IZQ"> &nbsp;' +
+                     '<label> IZQUIERDO &nbsp; </label> '  +
+                    '<input type="radio" id="lado" name="lado" value="DER"> &nbsp;' +
+                    '<label> DERECHO </label>' +
+                    '</div>';
+                    } else { html += '<input type="radio" style="display:None;" id="lado" name="lado" value="" checked>'}
                     var html2 = "";
                     html2 += '<input type="number" name="cantidad" id="cantidad" class="form-control" min="1" max="' + data[0].CANTIDAD + '">'
+
                     if (type == "PIEZA") {
                         $("#piezas").html(html);
                         $("#piezas").selectpicker("refresh");
