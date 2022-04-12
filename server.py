@@ -185,9 +185,6 @@ def lectura_masiva(maq):
             color = request.form['colores']
             espesor = request.form['espesores']
             pieza = request.form['piezas']
-            if color == 'Color':
-                flash("Error: Por favor ingrese todos los campos 1", 'danger')
-                return redirect(url_for('index1', maquina=maq, ventana=2))
             piezas = LecturaMasiva().verificar_lectura(op, color, espesor, pieza, maq)
             if piezas == 1:
                 flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
@@ -195,7 +192,7 @@ def lectura_masiva(maq):
                       'warning')
                 return redirect(url_for('index1', maquina=maq, ventana=2))
             LecturaMasiva().updateMasivo(piezas, maq)
-            if pieza == 'Pieza':
+            if pieza == '':
                 LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maq, None)
             else:
                 LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maq, pieza)

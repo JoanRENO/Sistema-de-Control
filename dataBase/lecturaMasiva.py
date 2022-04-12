@@ -78,7 +78,7 @@ class LecturaMasiva(DataBase):
         return OutputArray
 
     def verificar_lectura(self, op, color, espesor, pieza, maquina):
-        if pieza == 'Pieza':
+        if pieza == '':
             complete = "SELECT idPieza FROM " + DataBase.Tablas.basePiezas + " WHERE OP=? " \
                        "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=?" \
                        " AND lectura" + maquina + " = 0 AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
@@ -134,6 +134,7 @@ class LecturaMasiva(DataBase):
         for record in records:
             OutputArray.append(dict(zip(columnNames, record)))
         cant = OutputArray[0]['CANTIDAD']
+        print(cant)
         self.cursor.execute("INSERT INTO " + DataBase.Tablas.logLecturaMasiva +
                             " (Usuario, fechaMod, OP, Color, Espesor, maquina, Pieza, Cantidad) "
                             "VALUES (?,?,?,?,?,?,?,?)", usuario, fecha(), op, color, espesor, maquina, pieza, cant)
@@ -141,7 +142,8 @@ class LecturaMasiva(DataBase):
         self.close()
 
     def getTablaLecturaMasiva(self, maquina):
-        self.cursor.execute("SELECT TOP 8 * FROM " + DataBase.Tablas.logLecturaMasiva + " WHERE maquina = ?", maquina)
+        self.cursor.execute("SELECT TOP 8 * FROM " + DataBase.Tablas.logLecturaMasiva + " WHERE maquina = ? "
+                            "ORDER BY fechaMod DESC", maquina)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
