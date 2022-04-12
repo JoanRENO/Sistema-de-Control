@@ -61,8 +61,8 @@
                     <h2> {{ idPieza }} </h2>
                     <div class="form-group">
                         <label for="maq_1">MAQUINA DONDE SE DETECTO EL FALLO: </label>
-                        <select name="maq_1" data-live-search="true" id="maq_1" class="form-control">
-                        <option selected>Maq</option>
+                        <select name="maq_1" data-live-search="true" id="maq_1" class="form-control" required>
+                        <option selected value=""></option>
                         {% for maq in maqs_1 %}
                         <option value="{{maq}}">{{maq}}</option>
                         {% endfor %}
@@ -70,8 +70,8 @@
                     </div>
                     <div class="form-group">
                         <label for="maq_2">MAQUINA DONDE DEBE COMENZAR EL REPROCESO: </label>
-                        <select name="maq_2" data-live-search="true" id="maq_2" class="form-control">
-                        <option selected>Maq</option>
+                        <select name="maq_2" data-live-search="true" id="maq_2" class="form-control" required>
+                        <option selected value=""></option>
                         {% for maq in maqs_2 %}
                         <option value="{{maq}}">{{maq}}</option>
                         {% endfor %}
@@ -207,8 +207,8 @@
                     <form action={{url_for('generar_reproceso', tipo="PRMO")}} method="POST">
                     <div class="form-group">
                         <label for="maq_om">SELECCIONE EL ID DE LA PIEZA A REPROCESAR: </label>
-                        <select name="id_prmo" data-live-search="true" id="id_prmo" class="form-control">
-                        <option selected>Id</option>
+                        <select name="id_prmo" data-live-search="true" id="id_prmo" class="form-control" required>
+                        <option selected value=""></option>
                         {% for pieza in piezas %}
                         <option value="{{ pieza['idPieza'] }}">{{ pieza['idPieza'] }}</option>
                         {% endfor %}
@@ -216,8 +216,8 @@
                     </div>
                     <div class="form-group">
                         <label for="maq_om">MAQUINA DONDE DEBE COMENZAR EL REPROCESO: </label>
-                        <select name="maq_om" data-live-search="true" id="maq_om" class="form-control">
-                        <option selected>Maq</option>
+                        <select name="maq_om" data-live-search="true" id="maq_om" class="form-control" required>
+                        <option selected value=""></option>
                         {% for maq in maqs_om %}
                         <option value="{{maq}}">{{maq}}</option>
                         {% endfor %}
@@ -291,7 +291,7 @@
                 data: { type: type, maq_1: maq_1, idP: idP },
                 dataType: "json",
                 success: function (data) { //alert(maquina)
-                    var html = "<option selected>Maq</option>";
+                    var html = "<option selected></option>";
                     for (var count = 0; count < data.length; count++) {
                         html += '<option value="' + data[count] + '">' + data[count] + "</option>";
                     }
@@ -335,7 +335,7 @@
                 data: { type: type, maquina: maquina },
                 dataType: "json",
                 success: function (data) { //alert(maquina)
-                    var html = "<option selected>Op</option>";
+                    var html = "<option selected value=''></option>";
                     for (var count = 0; count < data.length; count++) {
                         html += '<option value="' + data[count].OP + '">' + data[count].OP + "</option>";
                     }
@@ -369,7 +369,7 @@
                 data: { type: type, maquina: maquina, op: op },
                 dataType: "json",
                 success: function (data) { //alert(maquina)
-                    var html = "<option selected>Color</option>";
+                    var html = "<option selected value=''></option>";
                     for (var count = 0; count < data.length; count++) {
                         html += '<option value="' + data[count].PIEZA_NOMBRECOLOR + '">' + data[count].PIEZA_NOMBRECOLOR + "</option>";
                     }
@@ -405,7 +405,7 @@
                 data: { type: type, maquina: maquina, op: op, color: color },
                 dataType: "json",
                 success: function (data) { //alert(maquina)
-                    var html = "<option selected>Espesor</option>";
+                    var html = "<option selected value=''></option>";
                     for (var count = 0; count < data.length; count++) {
                         html += '<option value="' + data[count].PIEZA_PROFUNDO + '">' + data[count].PIEZA_PROFUNDO + "</option>";
                     }
@@ -443,7 +443,7 @@
                 data: { type: type, maquina: maquina, op: op, color: color, espesor: espesor },
                 dataType: "json",
                 success: function (data) { //alert(maquina)
-                    var html = "<option selected>Pieza</option>";
+                    var html = "<option selected value=''></option>";
                     for (var count = 0; count < data.length; count++) {
                         html += '<option value="' + data[count].PIEZA_DESCRIPCION + '">' + data[count].PIEZA_DESCRIPCION + "</option>";
                     }
@@ -495,7 +495,7 @@
                     '</div>';
                     } else { html += '<input type="radio" style="display:None;" id="lado" name="lado" value="" checked>'}
                     var html2 = "";
-                    html2 += '<input type="number" name="cantidad" id="cantidad" class="form-control" min="1" max="' + data[0].CANTIDAD + '">'
+                    html2 += '<input type="number" name="cantidad" id="cantidad" class="form-control" min="1" max="' + data[0].CANTIDAD + '" required>'
 
                     if (type == "PIEZA") {
                         $("#piezas").html(html);
@@ -514,7 +514,7 @@
                 data: { type: type, maquina: maquina, op: op, color: color, espesor: espesor, pieza: pieza },
                 dataType: "json",
                 success: function (data) { //alert(maquina)
-                    var html = "<option selected>Maq</option>";
+                    var html = "<option selected value=''></option>";
                     for (var count = 0; count < data.length; count++) {
                     html += '<option value="' + data[count] + '">' + data[count] + "</option>";
                     }
@@ -550,7 +550,7 @@
                 data: { type: type, id_prmo: id_prmo },
                 dataType: "json",
                 success: function (data) { //alert(maquina)
-                    var html = "<option selected>Maq</option>";
+                    var html = "<option selected value=''></option>";
                     for (var count = 0; count < data.length; count++) {
                     html += '<option value="' + data[count] + '">' + data[count] + "</option>";
                     }

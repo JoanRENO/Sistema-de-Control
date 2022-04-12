@@ -20,9 +20,6 @@
             <li class="nav-item" onclick="myFunction(1)">
                 <a class="nav-link" href="#">Control</a>
             </li>
-            <!--<li class="nav-item" onclick="myFunction(2)">
-                <a class="nav-link" href="#">Etiqueta</a>
-            </li> -->
             <li class="nav-item" onclick="myFunction(2)">
                 <a class="nav-link" href="#">Baja OP</a>
             </li>
@@ -112,8 +109,8 @@
                         </div>
                         <div class="form-group">
                             <label for="ops">OP:</label>
-                            <select name="ops" data-live-search="true" id="ops" class="form-control">
-                            <option selected>OP</option>
+                            <select name="ops" data-live-search="true" id="ops" class="form-control" required>
+                            <option selected></option>
                             {% for row in ops %}
                             <option value="{{row}}">{{row}}</option>
                             {% endfor %}
@@ -121,21 +118,21 @@
                         </div>
                         <div class="form-group">
                             <label for="colores">Color:</label>
-                            <select name="colores" data-live-search="true" id="colores" class="form-control">
-                            <option selected>Color</option>
+                            <select name="colores" data-live-search="true" id="colores" class="form-control" required>
+                            <option selected></option>
                             </select>
 
                         </div>
                         <div class="form-group">
                             <label for="espesores">Espesor:</label>
-                            <select name="espesores" data-live-search="true" id="espesores" class="form-control">
-                            <option selected>Espesor</option>
+                            <select name="espesores" data-live-search="true" id="espesores" class="form-control" required>
+                            <option selected></option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="piezas">Pieza:</label>
                             <select name="piezas" data-live-search="true" id="piezas" class="form-control">
-                            <option selected>Pieza</option>
+                            <option selected></option>
                             </select>
                         </div>
                     <div><label id="cantidad" name="cantidad"></label></div>
@@ -287,7 +284,7 @@
                         data: { type: type, op: op, maquina: maquina },
                         dataType: "json",
                         success: function (data) { //alert(op)
-                            var html = "<option selected>Color</option>";
+                            var html = "<option selected></option>";
                             for (var count = 0; count < data.length; count++) {
                                 html += '<option value="' + data[count].PIEZA_NOMBRECOLOR + '">' + data[count].PIEZA_NOMBRECOLOR + "</option>";
                             }
@@ -321,7 +318,7 @@
                         data: { type: type, op: op, color: color, maquina: maquina },
                         dataType: "json",
                         success: function (data) { //alert(color)
-                            var html = "<option selected>Espesor</option>";
+                            var html = "<option selected></option>";
                             for (var count = 0; count < data.length; count++) {
                                 html += '<option value="' + data[count].PIEZA_PROFUNDO + '">' + data[count].PIEZA_PROFUNDO + "</option>";
                             }
@@ -357,7 +354,7 @@
                         data: { type: type, op: op, color: color, espesor: espesor, maquina: maquina },
                         dataType: "json",
                         success: function (data) { //alert(espesor)
-                            var html = "<option selected>Pieza</option>";
+                            var html = "<option selected></option>";
                             for (var count = 0; count < data.length; count++) {
                                 html += '<option value="' + data[count].PIEZA_DESCRIPCION + '">' + data[count].PIEZA_DESCRIPCION + "</option>";
                                 }

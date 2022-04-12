@@ -18,7 +18,7 @@ class Informe(DataBase):
         return data
 
     def lista_ops(self, maquina):
-        if maquina in ["FAB", "NST", "GBM", "CHN", "LEA", "ALU", "INSUMOS", "PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
+        if maquina in ["PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
             return []
         self.cursor.execute("SELECT DISTINCT OP FROM " + DataBase.Tablas.tableroBase + maquina + " WHERE lectura = 0 "
                             "AND RUTA_ASIGNADA LIKE '%" + maquina + "%' ORDER BY OP")

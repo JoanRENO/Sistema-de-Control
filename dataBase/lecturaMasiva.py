@@ -32,7 +32,8 @@ class LecturaMasiva(DataBase):
     def lista_espesores(self, color, op, maquina):
         self.cursor.execute("SELECT DISTINCT OP, PIEZA_NOMBRECOLOR, PIEZA_PROFUNDO FROM " + DataBase.Tablas.basePiezas +
                             " WHERE OP=? "
-                            "AND PIEZA_NOMBRECOLOR=? AND RUTA_ASIGNADA LIKE '%"+ maquina +"%' ORDER BY OP", op, color)
+                            "AND PIEZA_NOMBRECOLOR=? AND RUTA_ASIGNADA LIKE '%"+ maquina +"%' "
+                            " AND lectura" + maquina + " = 0 ORDER BY OP", op, color)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -45,7 +46,7 @@ class LecturaMasiva(DataBase):
         self.cursor.execute("SELECT DISTINCT OP, PIEZA_NOMBRECOLOR, PIEZA_PROFUNDO, PIEZA_DESCRIPCION "
                             "FROM " + DataBase.Tablas.basePiezas +
                             " WHERE OP=? AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND RUTA_ASIGNADA "
-                            "LIKE '%" + maquina + "%'", op, color, espesor)
+                            "LIKE '%" + maquina + "%' AND lectura" + maquina + " = 0", op, color, espesor)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -57,13 +58,16 @@ class LecturaMasiva(DataBase):
     def calcular_cant(self, op, color, espesor, pieza, maquina):
         if pieza == 1:
             self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP=? "
-                                "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND RUTA_ASIGNADA LIKE '%" + maquina + "%'",
+                                "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? "
+                                "AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
+                                " AND lectura" + maquina + " = 0",
                                 op, color, espesor)
             records = self.cursor.fetchall()
         else:
             self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP=? "
                                  "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND PIEZA_DESCRIPCION=? "
-                                "AND RUTA_ASIGNADA LIKE '%" + maquina + "%'",
+                                "AND RUTA_ASIGNADA LIKE '%" + maquina + "%' "
+                                "AND lectura" + maquina + " = 0",
                                 op, color, espesor, pieza)
             records = self.cursor.fetchall()
         OutputArray = []

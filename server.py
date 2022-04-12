@@ -52,7 +52,7 @@ def index1(maquina, ventana):
         display1 = "display:None;"
         display2 = "display:None;"
         display3 = ""
-        if maquina in ["NST", "GBM", "CHN", "LEA", "ALU", "INSUMOS", "PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
+        if maquina in ["PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
             flash("El informe no se encuentra disponible para esta maquina")
             return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
                                    piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina))
