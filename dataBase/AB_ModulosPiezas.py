@@ -192,7 +192,7 @@ class ABM(DataBase):
 
         # Commit the transaction
         self.cursor.commit()
-        self.close()
+        self.setLogAB("ALTA", "Modulos", OP, sheet.nrows-1)
 
         remove(nombre_archivo)
         remove('baseModulosLimpia.xlsx')
@@ -591,7 +591,7 @@ class ABM(DataBase):
 
         # Commit the transaction
         self.cursor.commit()
-        self.close()
+        self.setLogAB("ALTA", "Piezas", OP, sheet.nrows-1)
 
         remove(nombre_archivo)
         remove('basePiezasLimpia.xlsx')
@@ -631,25 +631,6 @@ class ABM(DataBase):
         self.cursor.execute("SELECT MAX(id) FROM " + DataBase.Tablas.logABModulosPiezas)
         maximo = self.cursor.fetchone()
         ids = maximo[0] + 1
-        if op == 0:
-            if base == "Modulo":
-                self.cursor.execute("SELECT OP FROM " + DataBase.Tablas.baseModulos +
-                                    " WHERE idModulo = (SELECT MAX(idModulo) FROM " + DataBase.Tablas.baseModulos + ")")
-            else:
-                self.cursor.execute("SELECT OP FROM " + DataBase.Tablas.basePiezas +
-                                    " WHERE idPieza = (SELECT MAX(idPieza) FROM " + DataBase.Tablas.basePiezas + ")")
-            dato = self.cursor.fetchone()
-            op = dato[0]
-        if cantidad == 0:
-            if base == "Modulo":
-                self.cursor.execute("SELECT COUNT(idModulo) FROM " + DataBase.Tablas.baseModulos + " WHERE OP = ?", op)
-                cant = self.cursor.fetchone()
-                cantidad = cant[0]
-            else:
-                op2 = op + " STD"
-                self.cursor.execute("SELECT COUNT(idPieza) FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? OR OP = ?", op, op2)
-                cant = self.cursor.fetchone()
-                cantidad = cant[0]
         self.cursor.execute("INSERT INTO " + DataBase.Tablas.logABModulosPiezas + " (id, Tipo, Base, OP, Cantidad, Fecha) "
                             "VALUES (?, ?, ?, ?, ?, ?)", ids, tipo, base, op, cantidad, fecha())
         self.cursor.commit()

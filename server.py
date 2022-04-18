@@ -286,13 +286,11 @@ def subir_archivo():
             archivo.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             if tipo == 'baseModulos':
                 ABM().Alta_Modulos(archivo.filename)
-                ABM().setLogAB("ALTA", "Modulo", 0, 0)
                 print("OPERACION SUBIDA DE DATOS: COMPLETADA")
                 flash('Los MODULOS se han subido correctamente')
                 return redirect(url_for('index4', ventana=1))
             elif tipo == 'basePiezas':
                 ABM().Alta_Piezas(archivo.filename)
-                ABM().setLogAB("ALTA", "Pieza", 0, 0)
                 print("OPERACION SUBIDA DE DATOS:  COMPLETADA")
                 flash('Las PIEZAS se han subido correctamente')
                 return redirect(url_for('index4', ventana=1))
