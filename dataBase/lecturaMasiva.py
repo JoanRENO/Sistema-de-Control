@@ -117,15 +117,15 @@ class LecturaMasiva(DataBase):
 
     def log_lecturaMasiva(self, usuario, op, color, espesor, maquina, pieza):
         if pieza is None:
-            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP= '" + op + "%' "
+            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP LIKE '" + op + "%' "
                                 "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND RUTA_ASIGNADA LIKE '%" + maquina + "%'",
-                                op, color, espesor)
+                                color, espesor)
             records = self.cursor.fetchall()
         else:
-            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP= '" + op + "%'"
+            self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP LIKE '" + op + "%'"
                                 "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND PIEZA_DESCRIPCION=? "
                                 "AND RUTA_ASIGNADA LIKE '%" + maquina + "%'",
-                                op, color, espesor, pieza)
+                                color, espesor, pieza)
             records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
