@@ -606,7 +606,7 @@ def generar_reproceso(tipo):
             causa = request.form['causa2']
             print("Cant: " + cantidad)
             if maq_detecto != 'Maquina' and op != 'Op' and color != 'Color' and espesor != 'Espesor' and pieza != 'Pieza' and maq_select != 'Maq' and cantidad != "":
-                ids_op = Reproceso().ids_op(op, color, espesor, maq_detecto, pieza, cantidad)
+                ids_op = Reproceso().ids_op(op, color, espesor, maq_detecto, maq_select, pieza, cantidad)
                 for x in ids_op:
                     info = Reproceso().info_final(x['idPieza'])
                     Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], info['idPieza'], maq_detecto, maq_select)

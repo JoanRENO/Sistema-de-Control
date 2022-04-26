@@ -98,17 +98,17 @@ class Reproceso(DataBase):
         self.close()
         return OutputArray
 
-    def ids_op(self, op, color, espesor, maquina, pieza, cantidad):
-        if maquina in ["LM", "LP", "LC"]:
+    def ids_op(self, op, color, espesor, maq_detecto, maq_select, pieza, cantidad):
+        if maq_detecto in ["LM", "LP", "LC"]:
             self.cursor.execute("SELECT TOP " + cantidad + " idPieza FROM " + DataBase.Tablas.basePiezas +
-                                " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
-                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? "
-                                , op, color, espesor, pieza)
+                                " WHERE RUTA_ASIGNADA LIKE '%" + maq_detecto + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
+                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND RUTA_ASIGNADA LIKE '%"
+                                + maq_select + "%'", op, color, espesor, pieza)
         else:
             self.cursor.execute("SELECT TOP " + cantidad + " idPieza FROM " + DataBase.Tablas.basePiezas +
-                                " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
-                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND lectura" + maquina + " = 0 "
-                                , op, color, espesor, pieza)
+                                " WHERE RUTA_ASIGNADA LIKE '%" + maq_detecto + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
+                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND lectura" + maq_detecto + " = 0 "
+                                "AND RUTA_ASIGNADA LIKE '%" + maq_select + "%'", op, color, espesor, pieza)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
