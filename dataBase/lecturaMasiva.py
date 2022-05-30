@@ -4,7 +4,8 @@ from .helpers import fecha
 
 class LecturaMasiva(DataBase):
     def lista_ops(self, maquina):
-        self.cursor.execute("SELECT DISTINCT OP FROM " + DataBase.Tablas.basePiezas + " WHERE lectura" + maquina + " = 0 "
+        self.cursor.execute("SELECT DISTINCT OP FROM " + DataBase.Tablas.basePiezas +
+                            " WHERE lectura" + maquina + " IN (0,null) "
                             "AND RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP NOT LIKE '%STD%' ORDER BY OP")
         records = self.cursor.fetchall()
         OutputArray = []
@@ -20,7 +21,7 @@ class LecturaMasiva(DataBase):
     def lista_colores(self, op, maquina):
         self.cursor.execute("SELECT DISTINCT PIEZA_NOMBRECOLOR FROM " + DataBase.Tablas.basePiezas +
                             " WHERE OP LIKE '" + op + "%' AND RUTA_ASIGNADA LIKE '%" + maquina + "%' AND "
-                            "lectura" + maquina + " = 0 ORDER BY PIEZA_NOMBRECOLOR")
+                            "lectura" + maquina + " IN (0,null) ORDER BY PIEZA_NOMBRECOLOR")
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -33,7 +34,7 @@ class LecturaMasiva(DataBase):
         self.cursor.execute("SELECT DISTINCT PIEZA_PROFUNDO FROM " + DataBase.Tablas.basePiezas +
                             " WHERE OP LIKE '" + op + "%' "
                             "AND PIEZA_NOMBRECOLOR = ? AND RUTA_ASIGNADA LIKE '%" + maquina + "%' "
-                            " AND lectura" + maquina + " = 0 ORDER BY PIEZA_PROFUNDO", color)
+                            " AND lectura" + maquina + " IN (0,null) ORDER BY PIEZA_PROFUNDO", color)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -46,7 +47,7 @@ class LecturaMasiva(DataBase):
         self.cursor.execute("SELECT DISTINCT PIEZA_DESCRIPCION "
                             "FROM " + DataBase.Tablas.basePiezas +
                             " WHERE OP LIKE '" + op + "%' AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND RUTA_ASIGNADA "
-                            "LIKE '%" + maquina + "%' AND lectura" + maquina + " = 0", color, espesor)
+                            "LIKE '%" + maquina + "%' AND lectura" + maquina + " IN (0,null)", color, espesor)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -60,13 +61,13 @@ class LecturaMasiva(DataBase):
             self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP LIKE '" + op + "%' "
                                 "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? "
                                 "AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
-                                " AND lectura" + maquina + " = 0", color, espesor)
+                                " AND lectura" + maquina + " IN (0,null)", color, espesor)
             records = self.cursor.fetchall()
         else:
             self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM " + DataBase.Tablas.basePiezas + " WHERE OP LIKE '" + op + "%' "
                                  "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND PIEZA_DESCRIPCION=? "
                                 "AND RUTA_ASIGNADA LIKE '%" + maquina + "%' "
-                                "AND lectura" + maquina + " = 0", color, espesor, pieza)
+                                "AND lectura" + maquina + " IN (0,null)", color, espesor, pieza)
             records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -79,13 +80,13 @@ class LecturaMasiva(DataBase):
         if pieza == '':
             complete = "SELECT idPieza FROM " + DataBase.Tablas.basePiezas + " WHERE OP LIKE '" + op + "%' " \
                        "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=?" \
-                       " AND lectura" + maquina + " = 0 AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
+                       " AND lectura" + maquina + " IN (0,null) AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
             self.cursor.execute(complete, color, espesor)
             records = self.cursor.fetchall()
         else:
             complete = "SELECT idPieza FROM " + DataBase.Tablas.basePiezas + " WHERE OP LIKE '" + op + "%' " \
                        "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND PIEZA_DESCRIPCION=?" \
-                       " AND lectura" + maquina + " = 0 AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
+                       " AND lectura" + maquina + " IN (0,null) AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
             self.cursor.execute(complete, color, espesor, pieza)
             records = self.cursor.fetchall()
         if not records:
