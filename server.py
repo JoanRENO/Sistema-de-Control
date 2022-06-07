@@ -13,6 +13,8 @@ from dataBase.plano import Plano
 from dataBase.informes import Informe
 from dataBase.reproceso import Reproceso
 from dataBase.pallet import Pallet
+from dataBase.restos import Resto
+from dataBase.produccion import Produccion
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './'
@@ -709,9 +711,348 @@ def getTablaPallet():
         data = Pallet().getTablaPallet(idPallet)
     return jsonify(data)
 
+#GESTION DE RESTOS
+@app.route('/gestion_restos/<string:ventana>', methods=["POST", "GET"])
+def gestion_restos(ventana):
+    if Resto().verificarOP():
+        flash('Optiplanning Activadado, funciones de Alta y Baja desahabilitadas')
+        return render_template("gestionRestos.html", display1="display:None;", display2="display:None;", display3="",
+                               buttons1="disabled",  buttons2="", backgroundcolor="green")
+    if ventana == "1":
+        display1 = ""
+        display2 = "display:None;"
+        display3 = "display:None;"
+    elif ventana == "2":
+        display1 = "display:None;"
+        display2 = ""
+        display3 = "display:None;"
+    elif ventana == "3":
+        display1 = "display:None;"
+        display2 = "display:None;"
+        display3 = ""
+    return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3,
+                           coloresBAJA=Resto().listaColoresBAJA(), coloresALTA=Resto().listaColoresALTA(),
+                           buttons1="",  buttons2="disabled", backgroundcolor="red")
 
-serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!
+
+@app.route('/alta_resto', methods=["POST"])
+def alta_resto():
+    try:
+        if request.method == 'POST':
+            color = request.form['color']
+            medidas = request.form['medidas']
+            print(color)
+            print(medidas)
+            Resto().altaResto(color, medidas)
+            flash('Ingresado con exito', 'success')
+    except IndexError:
+        flash('Error: ingrese todas las medidas', 'danger')
+    return redirect(url_for('gestion_restos', ventana='1'))
+
+
+@app.route('/restos_piezas', methods=["POST"])
+def restos_piezas():
+    if request.method == 'POST':
+        color = request.form['color']
+        piezas = Resto().listaPiezas(color)
+        print(piezas)
+        medidas = []
+        for x in piezas:
+            medidas.append(str(x['alto']) + 'X' + str(x['ancho']))
+        print(medidas)
+        return jsonify(medidas)
+
+@app.route('/baja_resto', methods=["POST"])
+def baja_resto():
+    try:
+        if request.method == 'POST':
+            color = request.form['color_baja']
+            medidas = request.form['pieza_baja']
+            print(color)
+            print(medidas)
+            Resto().bajaResto(color, medidas)
+            flash('Baja realizado con exito', 'success')
+    except IndexError:
+        flash('Error: ingrese todas las medidas', 'danger')
+    return redirect(url_for('gestion_restos', ventana='2'))
+
+@app.route('/activarOP', methods=["POST"])
+def activarOP():
+    Resto().activarOP('ACTIVADO')
+    return redirect(url_for('gestion_restos', ventana='3'))
+
+@app.route('/desactivarOP', methods=["POST"])
+def desactivarOP():
+    Resto().activarOP('DESACTIVADO')
+    return redirect(url_for('gestion_restos', ventana='3'))
+
+@app.route('/informeDiario')
+def informeDiario():
+    return render_template("informeDiario.html")
+
+#####################
+@app.route('/GBN1/<string:maquina>/<string:ventana>', methods=["POST", "GET"])
+def GBN1(maquina, ventana):
+    if ventana == "1":
+        display1 = ""
+        display2 = "display:None;"
+        display3 = "display:None;"
+        return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
+                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
+                               ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
+                               , op2=Informe().lista_ops(maquina)
+                               )
+    elif ventana == "2":
+        display1 = "display:None;"
+        display2 = ""
+        display3 = "display:None;"
+        return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
+                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
+                               ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
+                               , op2=Informe().lista_ops(maquina)
+        )
+    elif ventana == "3":
+        display1 = "display:None;"
+        display2 = "display:None;"
+        display3 = ""
+        if maquina in ["PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
+            flash("El informe no se encuentra disponible para esta maquina")
+            return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
+                                   piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina))
+        return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
+                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
+                               op2=Informe().lista_ops(maquina),
+                               piezas_noleidas=Informe().piezas_noleidas(maquina, request.form['op_informe']))
+
+
+@app.route("/lista_ops_GBN1", methods=["POST", "GET"])
+def lista_ops_GBN1():
+    global OutputArray
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        maquina = request.form['maquina']
+        print(tipo)
+        OutputArray = LecturaMasiva().lista_ops_GBN1(maquina, tipo)
+    return jsonify(OutputArray)
+
+
+@app.route("/ops_GBN1", methods=["POST", "GET"])
+def ops_GBN1():
+    global OutputArray
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        op = request.form['op']
+        maquina = request.form['maquina']
+        print(maquina)
+        print(op)
+        OutputArray = LecturaMasiva().lista_colores_GBN1(op, maquina, tipo)
+    return jsonify(OutputArray)
+
+
+@app.route("/colores_GBN1", methods=["POST", "GET"])
+def colores_GBN1():
+    global OutputArray
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        color = request.form['color']
+        op = request.form['op']
+        maquina = request.form['maquina']
+        print(color)
+        OutputArray = LecturaMasiva().lista_espesores_GBN1(color, op, maquina, tipo)
+    return jsonify(OutputArray)
+
+
+@app.route("/espesores_GBN1", methods=["POST", "GET"])
+def espesores_GBN1():
+    global piezas
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        op = request.form['op']
+        color = request.form['color']
+        espesor = request.form['espesor']
+        maquina = request.form['maquina']
+        print(espesor)
+        piezas = LecturaMasiva().lista_piezas_GBN1(op, color, espesor, maquina, tipo)
+    return jsonify(piezas)
+
+
+@app.route("/espesores_cantidad_GBN1", methods=["POST", "GET"])
+def espesores_cantidad_GBN1():
+    global cantidad
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        op = request.form['op']
+        color = request.form['color']
+        espesor = request.form['espesor']
+        maquina = request.form['maquina']
+        cantidad = LecturaMasiva().calcular_cant_GBN1(op, color, espesor, 1, maquina, tipo)
+    return jsonify(cantidad)
+
+
+@app.route("/piezas_GBN1", methods=["POST", "GET"])
+def piezas_GBN1():
+    global cantidad
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        op = request.form['op']
+        color = request.form['color']
+        espesor = request.form['espesor']
+        pieza = request.form['pieza']
+        maquina = request.form['maquina']
+        print(espesor + " , " + color + " , " + op + " , " + pieza)
+        cantidad = LecturaMasiva().calcular_cant_GBN1(op, color, espesor, pieza, maquina, tipo)
+    return jsonify(cantidad)
+
+
+@app.route('/lectura_masiva_GBN1/<string:maq>', methods=['POST'])
+def lectura_masiva_GBN1(maq):
+    try:
+        if request.method == 'POST':
+            pin = request.form['pin']
+            usuario = LecturaMasiva().verificar_pin(pin)
+            if usuario is None:
+                flash("Error: el PIN ingresado es incorrecto", 'danger')
+                return redirect(url_for('GBN1', maquina=maq, ventana=2))
+            tipo = request.form['tipobusqueda']
+            op = request.form['ops']
+            color = request.form['colores']
+            espesor = request.form['espesores']
+            pieza = request.form['piezas']
+            piezas = LecturaMasiva().verificar_lectura_GBN1(op, color, espesor, pieza, maq, tipo)
+            if piezas == 1:
+                flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
+                      "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza,
+                      'warning')
+                return redirect(url_for('GBN1', maquina=maq, ventana=2))
+            if pieza == '':
+                LecturaMasiva().log_lecturaMasiva_GBN1(usuario, op, color, espesor, maq, None, tipo)
+            else:
+                LecturaMasiva().log_lecturaMasiva_GBN1(usuario, op, color, espesor, maq, pieza, tipo)
+            LecturaMasiva().updateMasivo(piezas, maq)
+            flash("Lectura masiva realizada con exito. \n OP: " + op + " | COLOR: " + color + " | ESPESOR: " + espesor
+                  + " | PIEZA: " + pieza)
+            return redirect(url_for('GBN1', maquina=maq, ventana=2))
+    except pyodbc.DataError:
+        flash("Error: Por favor ingrese todos los campos 2", 'danger')
+        return redirect(url_for('GBN1', maquina=maq, ventana=2))
+
+################# SEGUIMIENTO DE PRODUCCION ######################
+@app.route('/produccion/<string:maq>/<string:opc>', methods=["POST", "GET"])
+def produccion(maq, opc):
+    estado = Produccion().consultarEstadoTurno(maq)
+    if estado == "0":
+        botonTurnoStyle = "success"
+        botonTurnoTexto = "Iniciar Turno"
+        botonParadaStyle = "disabled"
+        botonParadaTexto = "Parada de Maquina"
+        botonCambioOpStyle = "disabled"
+        opTexto = ""
+        opStyle = "disabled"
+        disabledCampos = "disabled"
+        botonTareaStyle = "disabled"
+        botonTareaTexto = "Registrar Tarea"
+        tipoTarea = ""
+        tipoParada = ""
+        idTurno = 0
+        displayCambiarOP = "display:None;"
+        ops = []
+        botonTurnodisabled = ""
+        piezas = []
+    else:
+        if opc == "4":
+            opc = Produccion().consultarProceso(maq)
+        if opc == "0":
+            botonParadaStyle = "disabled"
+            botonParadaTexto = "Parada de Maquina"
+            opTexto = ""
+            opStyle = "disabled"
+            disabledCampos = "disabled"
+            botonTareaStyle = "disabled"
+            botonTareaTexto = "Registrar Tarea"
+            tipoTarea = "5"
+            tipoParada = "5"
+            displayCambiarOP = "display:None;"
+            ops = Produccion().getListaOp(maq)
+            botonCambioOpStyle = ""
+            botonTurnodisabled = ""
+            piezas = []
+        elif opc == "1":
+            botonParadaStyle = ""
+            botonParadaTexto = "Parada de Maquina"
+            opTexto = Produccion().getOP(maq)
+            opStyle = "disabled"
+            disabledCampos = ""
+            botonTareaStyle = ""
+            botonTareaTexto = "Registrar Tarea"
+            tipoTarea = "2"
+            tipoParada = "3"
+            displayCambiarOP = ""
+            ops = Produccion().getListaOp(maq)
+            botonCambioOpStyle = ""
+            botonTurnodisabled = ""
+            piezas = Produccion().getPiezas(maq, opTexto)
+        else:
+            botonParadaStyle = ""
+            botonParadaTexto = "Parada de Maquina: ACTIVO"
+            opTexto = Produccion().getOP(maq)
+            opStyle = "disabled"
+            disabledCampos = "disabled"
+            botonTareaStyle = "disabled"
+            botonTareaTexto = "Registrar Tarea"
+            tipoTarea = "2"
+            tipoParada = "4"
+            displayCambiarOP = ""
+            ops = []
+            botonCambioOpStyle = 'disabled'
+            botonTurnodisabled = "disabled"
+            piezas = []
+        botonTurnoStyle = "danger"
+        botonTurnoTexto = "Finalizar Turno"
+        idTurno = Produccion().getIdTurno(maq)
+    return render_template("produccion.html", maquina=maq, botonTurnoStyle=botonTurnoStyle, botonParadaStyle=botonParadaStyle,
+                           botonParadaTexto=botonParadaTexto,
+                           botonTurnoTexto=botonTurnoTexto, opTexto=opTexto, opStyle=opStyle,
+                           disabledCampos=disabledCampos, botonTareaStyle=botonTareaStyle,
+                           botonTareaTexto=botonTareaTexto, tipoParada=tipoParada, idTurno=idTurno, tipoTarea=tipoTarea,
+                           displayCambiarOP=displayCambiarOP, ops=ops, botonCambioOpStyle=botonCambioOpStyle,
+                           botonTurnodisabled=botonTurnodisabled, piezas=piezas)
+
+@app.route("/prouduccion_turno/<string:maq>", methods=["POST"])
+def produccion_turno(maq):
+    if request.method == 'POST':
+        Produccion().cambiarEstadoTurno(maq)
+    return redirect(url_for('produccion', maq=maq, opc="0"))
+
+@app.route("/produccion_tarea/<string:maq>/<string:tipo>", methods=["POST"])
+def produccion_tarea(maq, tipo):
+    if request.method == 'POST':
+        if tipo == '1':
+            op = request.form['op']
+            Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
+            return redirect(url_for('produccion', maq=maq, opc="1"))
+        if tipo == '2':
+            descripcion = request.form['tarea']
+            cantidad = request.form['cantidad']
+            Produccion().finalizarTarea(maq, descripcion, cantidad)
+            Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
+            return redirect(url_for('produccion', maq=maq, opc="0"))
+
+@app.route("/prouduccion_parada/<string:maq>/<string:tipo>", methods=["POST"])
+def prouduccion_parada(maq, tipo):
+    if request.method == 'POST':
+        if tipo == '3':
+            Produccion().iniciarParada(maq)
+            return redirect(url_for('produccion', maq=maq, opc="2"))
+        if tipo == '4':
+            observacion = request.form['observacion']
+            Produccion().finalizarParada(maq, observacion)
+        return redirect(url_for('produccion', maq=maq, opc="1"))
+
+
+
+
+#serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!
 
 # starting the app
-#if __name__ == "__main__":
-#    app.run(port=3000, debug=True)
+if __name__ == "__main__":
+    app.run(port=3000, debug=True)

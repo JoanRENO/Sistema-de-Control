@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+
+  </head>
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" title="Volver al menu principal">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('index1', maquina=maquina, ventana="1")}}>Control</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('index1', maquina=maquina, ventana="2")}}>Baja OP</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('index1', maquina=maquina, ventana="3")}}>Informe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('produccion', maq=maquina, opc="0")}}>Parte de Produccion</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+
+        <div class="container">
+            <div class="row">
+
+            <div class="col-md-12 order-md-1">
+                <div id="produccion">
+                    <h2 class="mb-3 text-center">Parte de Produccion</h2>
+                    <div class="row">
+                        <h3 class="mb-3">Centro de Trabajo : {{ maquina }}</h3>
+                        <button id="boton_alta" class="btn btn-{{ botonTurnoStyle }} ml-auto" data-toggle="modal" data-target="#modalturno" {{ botonTurnodisabled }} >
+                            <strong>{{ botonTurnoTexto }}</strong>
+                        </button>
+                    </div>
+                    <div class="text-center">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#modalparada" {{ botonParadaStyle }}>{{ botonParadaTexto }}</button>
+                    </div>
+                    <div>
+                        <hr>
+                      {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'message' %}
+                                  <div class="alert alert-primary" role="alert">
+                                {% else %}
+                                  <div class="alert alert-{{ category }}" role="alert">
+                                {% endif %}
+                                  <strong>{{ message }}</strong>
+                                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                  </button>
+                                </div>
+                            {% endfor %}
+                          {% endif %}
+                      {% endwith %}
+                    </div>
+
+                        <button class="btn btn-primary" type="submit" data-toggle="modal" data-target="#modalOp" {{ botonCambioOpStyle }}>
+                              Cambiar OP
+                        </button>
+                        <br><br>
+                        <form action={{url_for('produccion_tarea', maq=maquina, tipo=tipoTarea)}} method="post">
+                            <div class="form-group">
+                                <label for="op">OP: </label>
+                                <input type="text" class="form-control" id="op" name="op"
+                                placeholder="{{ opTexto }}" autofocus="autofocus" {{ opStyle }}>
+                            </div>
+                            <div class="form-group">
+                                <label for="tarea">Descripcion Tarea: </label>
+                                <select name="tarea" data-live-search="true" id="tarea" class="form-control selectpicker" required>
+                                    <option selected></option>
+                                    {% for pieza in piezas %}
+                                        <option value="{{pieza['PIEZA_DESCRIPCION']}}">{{pieza['PIEZA_DESCRIPCION']}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="cantidad">Ingrese cantidad: </label>
+                                <input type="number" min="1" class="form-control" id="cantidad" name="cantidad" {{ disabledCampos }}>
+                            </div>
+                            <button type="submit" class="btn btn-primary" {{ botonTareaStyle }}>{{ botonTareaTexto }}</button>
+                        </form>
+            <br>
+                        <hr>
+                 <table class="table table-dark table-striped">
+                    <thead>
+                        <tr>
+                            <th scope="col">Fecha</th>
+                            <th scope="col">OP</th>
+                            <th scope="col">Descripcion</th>
+                            <th scope="col">Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                     <!-- {% for lectura in ops_masivo %}
+                      <tr>
+                        <td>{{lectura['fechaMod']}}</td>
+                        <td>{{lectura['OP']}}</td>
+                        <td>{{lectura['Pieza']}}</td>
+                        <td>{{lectura['Cantidad']}}</td>
+                      </tr>
+                      {% endfor %} -->
+                    </tbody>
+                </table>
+                </div>
+
+
+            <!-- Modal Turno -->
+            <div class="modal fade" id="modalturno" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                {% if botonTurnoTexto == "Finalizar Turno" %}
+                  <strong>Desea Finalizar Turno? </strong>
+                    <br><br>
+                    <form action={{url_for('produccion_turno', maq=maquina)}} method="post">
+                         <button type="submit" class="btn btn-primary">Aceptar</button>
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                     </form>
+                {% else %}
+                <strong>Ingrese su numero de legajo: </strong>
+                    <br><br>
+                    <form action={{url_for('produccion_turno', maq=maquina)}} method="post">
+                        <input type="text" class="form-control" id="legajo" name="legajo"
+                        autofocus="autofocus" required>
+                        <br>
+                         <button type="submit" class="btn btn-primary">Aceptar</button>
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                     </form>
+                  {% endif %}
+              </div>
+            </div>
+            </div>
+            </div>
+            <!-- Modal OP -->
+            <div class="modal fade" id="modalOp" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                <strong>Ingrese la OP a realizar: </strong>
+                    <br><br>
+                    <form action={{url_for('produccion_tarea', maq=maquina, tipo="1")}} method="post">
+                        <select name="op" data-live-search="true" id="ops" class="form-control selectpicker" required>
+                            <option selected></option>
+                            {% for row in ops %}
+                                <option value="{{row['OP']}}">{{row['OP']}}</option>
+                            {% endfor %}
+                        </select>
+                        <br><br>
+                        <button type="submit" class="btn btn-primary">Ingresar</button>
+                     </form>
+                    <hr>
+                    <button id="boton_alta" class="btn btn-{{ botonTurnoStyle }} ml-auto" data-toggle="modal" data-target="#modalturno">
+                        <strong>{{ botonTurnoTexto }}</strong>
+                    </button>
+                    <form>
+
+                    </form>
+              </div>
+            </div>
+            </div>
+            </div>
+
+{% if opStyle == 'disabled' and disabledCampos == 'disabled' and tipoTarea == '2' %}
+<!-- Modal Parada -->
+            <div class="modal fade" id="modalparada" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                <strong>Desea finalizar la parada de Maquina ?</strong>
+                <form action={{url_for('prouduccion_parada', maq=maquina, tipo=tipoParada)}} method="post">
+                  <div class="mb-3">
+                    <label for="observacion" class="col-form-label">Observacion:</label>
+                    <select name="observacion" data-live-search="true" id="observacion" class="form-control selectpicker" required>
+                            <option selected></option>
+                            <option value="Observacion 1">Observacion 1</option>
+                            <option value="Observacion 2">Observacion 2</option>
+                            <option value="Observacion 3">Observacion 3</option>
+                            <option value="Observacion 4">Observacion 4</option>
+                            <option value="Observacion 5">Observacion 5</option>
+                    </select>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Aceptar</button>
+              </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+            </div>
+            </div>
+{% else %}
+          <!-- Modal Parada -->
+            <div class="modal fade" id="modalparada" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                <strong>Desea parar la maquina ?</strong>
+              </div>
+              <div class="modal-footer">
+                <form action={{url_for('prouduccion_parada', maq=maquina, tipo=tipoParada)}} method="post">
+                <button type="submit" class="btn btn-primary">Aceptar</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+            </div>
+            </div>
+{% endif %}
+            </div>
+        </div>
+                <br>
+      </div>
+    </div>
+  </div>
+
+      <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+      {% if tipoTarea == '5' and tipoParada == '5'%}
+        <script>
+           $( document ).ready(function() {
+                $('#modalOp').modal('toggle')
+            });
+        </script>
+      {% endif %}
+    </body>
+
+</html>
