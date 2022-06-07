@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+
+  </head>
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" title="Volver al menu principal">RENO</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item" onclick="myFunction(1)">
+                <a class="nav-link" href="#">Alta</a>
+            </li>
+            <!--<li class="nav-item" onclick="myFunction(2)">
+                <a class="nav-link" href="#">Etiqueta</a>
+            </li> -->
+            <li class="nav-item" onclick="myFunction(2)">
+                <a class="nav-link" href="#">Baja</a>
+            </li>
+            <li class="nav-item" onclick="myFunction(3)">
+                <a class="nav-link" href="#">Optiplanning</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+
+        <div class="container">
+            <div class="row">
+
+            <div class="col-md-12 order-md-1">
+                <div id="control" style={{ display1 }}>
+                    <h2 class="mb-3 text-center">Gestion de Restos</h2>
+                    <h4 class="mb-3">Alta de Stock</h4>
+                    <div style={{ display1 }}>
+                      {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'message' %}
+                                  <div class="alert alert-success" role="alert">
+                                {% else %}
+                                  <div class="alert alert-{{ category }}" role="alert">
+                                {% endif %}
+                                  <strong>{{ message }}</strong>
+                                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                  </button>
+                                </div>
+                            {% endfor %}
+                          {% endif %}
+                      {% endwith %}
+                    </div>
+                        <form action={{url_for('alta_resto')}} method="post">
+                            <div class="form-group">
+                            <label for="color">Ingrese color: </label>
+                                <input list="coloresALTA" type="text" class="form-control" id="color" name="color"
+                                       autofocus="autofocus" placeholder="Color" required>
+                            <datalist id="coloresALTA">
+                                {% for color in coloresALTA%}
+                                    <option> {{ color['color'] }}</option>
+                                {% endfor %}
+                            </datalist>
+                            </div>
+                            <div class="form-group">
+                            <label for="medidas">Ingrese medidas: </label>
+                            <input type="text" class="form-control" id="medidas" name="medidas" placeholder="Medidas" required>
+                            </div>
+                            <button id="boton_alta" type="submit" class="btn btn-primary" {{buttons1}}>Ingresar</button>
+                        </form>
+            <br>
+                </div>
+
+                <div id="baja_op" style={{ display2 }}>
+                    <h2 class="mb-3 text-center">Gestion de Restos</h2>
+                    <h4 class="mb-3">Baja de Stock </h4>
+                <div class="container">
+                    <div style={{ display2 }}>
+                      {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'message' %}
+                                  <div class="alert alert-success" role="alert">
+                                {% else %}
+                                  <div class="alert alert-{{ category }}" role="alert">
+                                {% endif %}
+                                  <strong>{{ message }}</strong>
+                                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                  </button>
+                                </div>
+                            {% endfor %}
+                          {% endif %}
+                      {% endwith %}
+                    </div>
+                    <br>
+                </div>
+                <form action={{url_for('baja_resto')}} method="post">
+                    <div class="form-group">
+                        <label for="color_baja">Seleccione Color: </label>
+                        <select name="color_baja" data-live-search="true" id="color_baja" class="form-control selectpicker" required>
+                        <option selected value=""></option>
+                        {% for color in coloresBAJA %}
+                        <option>{{ color['color'] }}</option>
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pieza_baja">Seleccione Pieza: </label>
+                        <select name="pieza_baja" data-live-search="true" id="pieza_baja" class="form-control selectpicker" required>
+                        </select>
+                    </div>
+                    <button id="boton_baja" type="submit" class="btn btn-primary" {{buttons1}}>Dar de Baja</button>
+                </form>
+            </div>
+            </div>
+
+            <div id="informe" style={{ display3 }}>
+                <div class="container">
+                <h2 class="mb-3 text-center">Gestion de Restos</h2>
+                    <div>
+                        <h3 id="opt" style="background-color:{{backgroundcolor}};" >Optiplanning</h3>
+                        <form action={{url_for('activarOP')}} method="post">
+                        <button id="activar" class="btn btn-primary" {{buttons1}}>Acticar</button>
+                        </form>
+                        <form action={{url_for('desactivarOP')}} method="post">
+                        <button id="desactivar" class="btn btn-primary" {{buttons2}}>Desactivar</button>
+                        </form>
+                    </div>
+                    <br>
+                    <form>
+                            <div class="form-group">
+                            <label for="formFile" class="form-label">File input</label>
+                            <input class="form-control-file" type="file" id="formFile">
+                            </div>
+                    </form>
+                    <br><br><br>
+                    <div>
+                        <a href="/">Descargar planilla de optiplanning</a>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+    <script>
+        function myFunction(idButton) {
+            var div1 = document.getElementById('control');
+            var div2 = document.getElementById('baja_op');
+            var div3 = document.getElementById('informe');
+
+        switch(idButton) {
+            case 1:
+                div1.style.display = 'block';
+                div2.style.display = 'none';
+                div3.style.display = 'none';
+                break;
+            case 2:
+                div1.style.display = 'none';
+                div2.style.display = 'block';
+                div3.style.display = 'none';
+                break;
+            case 3:
+                div1.style.display = 'none';
+                div2.style.display = 'none';
+                div3.style.display = 'block';
+                break;
+        default:
+          alert("hay un problema: No existe id.")
+        }
+    }
+    </script>
+      <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+    <script>
+    $(document).ready(function () {
+        $("#color_baja").selectpicker();
+
+        function load_data(type, color) {
+            $.ajax({
+                url: "/restos_piezas",
+                method: "POST",
+                data: { type: type, color: color},
+                dataType: "json",
+                success: function (data) {
+                    var html = "<option selected value=''></option>";
+                    for (var count = 0; count < data.length; count++) {
+                        html += '<option value="' + data[count] + '">' + data[count] + "</option>";
+                    }
+                    if (type == "PIEZA") {
+                        $("#color_baja").html(html);
+                        $("#color_baja").selectpicker("refresh");
+                    } else {
+                        $("#pieza_baja").html(html);
+                        $("#pieza_baja").selectpicker("refresh");
+                    }
+                },
+            });
+        }
+
+        $(document).on("change", "#color_baja", function () {
+            var color = $("#color_baja").val();
+            load_data("COLOR", color);
+        });
+    });
+    </script>
+    </body>
+
+</html>
