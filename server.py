@@ -1,3 +1,4 @@
+import werkzeug.exceptions
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 import pyodbc
 import os
@@ -958,6 +959,9 @@ def produccion(maq, opc):
         ops = []
         botonTurnodisabled = ""
         piezas = []
+        informe = []
+        if opc == "7":
+            flash("Error: el LEGAJO ingresado es incorrecto", 'danger')
     else:
         if opc == "4":
             opc = Produccion().consultarProceso(maq)
@@ -1009,33 +1013,59 @@ def produccion(maq, opc):
         botonTurnoStyle = "danger"
         botonTurnoTexto = "Finalizar Turno"
         idTurno = Produccion().getIdTurno(maq)
+        informe = Produccion().listaInforme(idTurno)
     return render_template("produccion.html", maquina=maq, botonTurnoStyle=botonTurnoStyle, botonParadaStyle=botonParadaStyle,
                            botonParadaTexto=botonParadaTexto,
                            botonTurnoTexto=botonTurnoTexto, opTexto=opTexto, opStyle=opStyle,
                            disabledCampos=disabledCampos, botonTareaStyle=botonTareaStyle,
                            botonTareaTexto=botonTareaTexto, tipoParada=tipoParada, idTurno=idTurno, tipoTarea=tipoTarea,
                            displayCambiarOP=displayCambiarOP, ops=ops, botonCambioOpStyle=botonCambioOpStyle,
-                           botonTurnodisabled=botonTurnodisabled, piezas=piezas)
+                           botonTurnodisabled=botonTurnodisabled, piezas=piezas, informe=informe)
 
 @app.route("/prouduccion_turno/<string:maq>", methods=["POST"])
 def produccion_turno(maq):
     if request.method == 'POST':
-        Produccion().cambiarEstadoTurno(maq)
+        estado = Produccion().consultarEstadoTurno(maq)
+        print("ESTADO: " + estado)
+        if estado == "0":
+            legajo = request.form['legajo']
+            print(legajo)
+            usuario = LecturaMasiva().verificar_pin(legajo)
+            print(usuario)
+            if usuario is None:
+                return redirect(url_for('produccion', maq=maq, opc="7"))
+        else:
+            legajo = 0
+        Produccion().cambiarEstadoTurno(maq, legajo)
     return redirect(url_for('produccion', maq=maq, opc="0"))
 
 @app.route("/produccion_tarea/<string:maq>/<string:tipo>", methods=["POST"])
 def produccion_tarea(maq, tipo):
     if request.method == 'POST':
-        if tipo == '1':
-            op = request.form['op']
-            Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
-            return redirect(url_for('produccion', maq=maq, opc="1"))
-        if tipo == '2':
-            descripcion = request.form['tarea']
-            cantidad = request.form['cantidad']
-            Produccion().finalizarTarea(maq, descripcion, cantidad)
-            Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
-            return redirect(url_for('produccion', maq=maq, opc="0"))
+        try:
+            if tipo == '1':
+                op = request.form['op']
+                Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
+                return redirect(url_for('produccion', maq=maq, opc="1"))
+            if tipo == '2':
+                descripcion = request.form['tarea'] + ' ' + request.form['espesor'] + ' mm'
+                cantidad = request.form['cantidad']
+                Produccion().finalizarTarea(maq, descripcion, cantidad)
+                Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
+                return redirect(url_for('produccion', maq=maq, opc="0"))
+        except werkzeug.exceptions.BadRequestKeyError:
+            if tipo == '1':
+                op = request.form['op']
+                Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
+                return redirect(url_for('produccion', maq=maq, opc="1"))
+            if tipo == '2':
+                descripcion = request.form['tarea']
+                cantidad = request.form['cantidad']
+                Produccion().finalizarTarea(maq, descripcion, cantidad)
+                Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
+                return redirect(url_for('produccion', maq=maq, opc="0"))
+
+
 
 @app.route("/prouduccion_parada/<string:maq>/<string:tipo>", methods=["POST"])
 def prouduccion_parada(maq, tipo):
@@ -1047,6 +1077,27 @@ def prouduccion_parada(maq, tipo):
             observacion = request.form['observacion']
             Produccion().finalizarParada(maq, observacion)
         return redirect(url_for('produccion', maq=maq, opc="1"))
+
+@app.route("/cantidadCount", methods=["POST", "GET"])
+def cantidadCount():
+    global cantidad
+    if request.method == 'POST':
+        maquina = request.form['maquina']
+        op = request.form['op']
+        tarea = request.form['tarea']
+        espesor = request.form['espesor']
+        cantidad = Produccion().getCantidad(op, tarea, maquina, espesor)
+    return jsonify(cantidad)
+
+@app.route("/espesores_parte", methods=["POST", "GET"])
+def espesores_parte():
+    global espesores
+    if request.method == 'POST':
+        maquina = request.form['maquina']
+        op = request.form['op']
+        tarea = request.form['tarea']
+        espesores = Produccion().getEspesores(op, tarea, maquina)
+    return jsonify(espesores)
 
 
 

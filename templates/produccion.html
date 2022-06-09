@@ -23,9 +23,9 @@
             <li class="nav-item">
                 <a class="nav-link" href={{url_for('index1', maquina=maquina, ventana="2")}}>Baja OP</a>
             </li>
-            <li class="nav-item">
+           <!-- <li class="nav-item">
                 <a class="nav-link" href={{url_for('index1', maquina=maquina, ventana="3")}}>Informe</a>
-            </li>
+            </li> -->
             <li class="nav-item">
                 <a class="nav-link" href={{url_for('produccion', maq=maquina, opc="0")}}>Parte de Produccion</a>
             </li>
@@ -80,6 +80,23 @@
                                 <input type="text" class="form-control" id="op" name="op"
                                 placeholder="{{ opTexto }}" autofocus="autofocus" {{ opStyle }}>
                             </div>
+                            {% if maquina == 'SLC' or maquina == 'GBN1' or maquina == 'NST' %}
+                            <div class="form-group">
+                                <label for="tarea">Color: </label>
+                                <select name="tarea" data-live-search="true" id="tarea" class="form-control selectpicker" required>
+                                    <option selected></option>
+                                    {% for pieza in piezas %}
+                                        <option value="{{pieza['PIEZA_DESCRIPCION']}}">{{pieza['PIEZA_DESCRIPCION']}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="tarea">Espesor: </label>
+                                <select name="espesor" data-live-search="true" id="espesor" class="form-control selectpicker" required>
+                                    <option selected></option>
+                                </select>
+                            </div>
+                            {% else %}
                             <div class="form-group">
                                 <label for="tarea">Descripcion Tarea: </label>
                                 <select name="tarea" data-live-search="true" id="tarea" class="form-control selectpicker" required>
@@ -89,9 +106,11 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            {% endif %}
+                            <div><label id="cantidadCount" name="cantidadCount"></label></div>
                             <div class="form-group">
                                 <label for="cantidad">Ingrese cantidad: </label>
-                                <input type="number" min="1" class="form-control" id="cantidad" name="cantidad" {{ disabledCampos }}>
+                                <input type="number" min="1" class="form-control" id="cantidad" name="cantidad" required {{ disabledCampos }}>
                             </div>
                             <button type="submit" class="btn btn-primary" {{ botonTareaStyle }}>{{ botonTareaTexto }}</button>
                         </form>
@@ -107,14 +126,14 @@
                         </tr>
                     </thead>
                     <tbody>
-                     <!-- {% for lectura in ops_masivo %}
+                      {% for row in informe %}
                       <tr>
-                        <td>{{lectura['fechaMod']}}</td>
-                        <td>{{lectura['OP']}}</td>
-                        <td>{{lectura['Pieza']}}</td>
-                        <td>{{lectura['Cantidad']}}</td>
+                        <td>{{row['Fecha']}}</td>
+                        <td>{{row['OP']}}</td>
+                        <td>{{row['Descripcion']}}</td>
+                        <td>{{row['Cantidad']}}</td>
                       </tr>
-                      {% endfor %} -->
+                      {% endfor %}
                     </tbody>
                 </table>
                 </div>
@@ -188,11 +207,27 @@
                     <label for="observacion" class="col-form-label">Observacion:</label>
                     <select name="observacion" data-live-search="true" id="observacion" class="form-control selectpicker" required>
                             <option selected></option>
-                            <option value="Observacion 1">Observacion 1</option>
-                            <option value="Observacion 2">Observacion 2</option>
-                            <option value="Observacion 3">Observacion 3</option>
-                            <option value="Observacion 4">Observacion 4</option>
-                            <option value="Observacion 5">Observacion 5</option>
+                            <option value="Cambio de correas">Cambio de correas</option>
+                            <option value="Cambio de filos">Cambio de filos</option>
+                            <option value="Cambio de herramientas">Cambio de herramientas</option>
+                            <option value="Cambio de sierra">Cambio de sierra</option>
+                            <option value="Corte de energia">Corte de energia</option>
+                            <option value="Descanso">Descanso</option>
+                            <option value="Esperar temperatura">Esperar temperatura</option>
+                            <option value="Maquina parada por mantenimiento">Maquina parada por mantenimiento</option>
+                            <option value="Movimiento de materiales">Movimiento de materiales</option>
+                            <option value="Planos no generados">Planos no generados</option>
+                            <option value="Prob con Aire Comprimido">Prob con Aire Comprimido</option>
+                            <option value="Problema con Bironcar">Problema con Bironcar</option>
+                            <option value="Problema con cuchillas">Problema con cuchillas</option>
+                            <option value="Problema con el palpador">Problema con el palpador</option>
+                            <option value="Problema con sensores">Problema con sensores</option>
+                            <option value="Problema con retesteador">Problema con retesteador</option>
+                            <option value="Problema con topes">Problema con topes</option>
+                            <option value="Programacion y armado de repsocesos">Programacion y armado de repsocesos</option>
+                            <option value="Puesta a punto de maquina">Puesta a punto de maquina</option>
+                            <option value="Soporte elevador sin material">Soporte elevador sin material</option>
+
                     </select>
                   </div>
               </div>
@@ -239,6 +274,116 @@
             });
         </script>
       {% endif %}
+      {% if maquina == 'SLC' or maquina == 'GBN1' or maquina == 'NST' %}
+            <script>
+          $(document).ready(function () {
+            $("#tarea").selectpicker();
+            $("#cantidadCount").selectpicker();
+
+            function load_data(type, tarea, op, maquina) {
+                $.ajax({
+                    url: "/espesores_parte",
+                    method: "POST",
+                    data: { type: type, tarea: tarea, op: op, maquina: maquina},
+                    dataType: "json",
+                    success: function (data) { //alert(espesor)
+                        var html = "<option selected></option>";
+                        for (var count = 0; count < data.length; count++) {
+                                html += '<option value="' + data[count].PIEZA_PROFUNDO + '">' + data[count].PIEZA_PROFUNDO + "</option>";
+                                }
+
+                        if (type == "Espesor") {
+                            $("#espesores").html(html);
+                            $("#espesores").selectpicker("refresh");
+                        } else {
+                            $("#espesor").html(html);
+                            $("#espesor").selectpicker("refresh");
+                        }
+                    },
+                });
+            }
+
+            $(document).on("change", "#tarea", function () {
+                var tarea = $("#tarea").val();
+                var op = '{{ opTexto }}';
+                var maquina = '{{ maquina }}';
+                load_data("Pieza", tarea, op, maquina);
+            });
+        });
+    </script>
+    <script>
+          $(document).ready(function () {
+            $("#tarea").selectpicker();
+            $("#espesor").selectpicker();
+            $("#cantidadCount").selectpicker();
+
+            function load_data(type, tarea, op, maquina, espesor) {
+                $.ajax({
+                    url: "/cantidadCount",
+                    method: "POST",
+                    data: { type: type, tarea: tarea, op: op, maquina: maquina, espesor: espesor},
+                    dataType: "json",
+                    success: function (data) { //alert(espesor)
+                        var html = "";
+                        html += '<label value="' + data + '"> CANTIDAD DE PIEZAS TOTALES: ' + data + "</label>";
+
+                        if (type == "Espesor") {
+                            $("#espesores").html(html);
+                            $("#espesores").selectpicker("refresh");
+                        } else {
+                            $("#cantidadCount").html(html);
+                            $("#cantidadCount").selectpicker("refresh");
+                        }
+                    },
+                });
+            }
+
+            $(document).on("change", "#espesor", function () {
+                var tarea = $("#tarea").val();
+                var op = '{{ opTexto }}';
+                var maquina = '{{ maquina }}';
+                var espesor = $("#espesor").val();
+                load_data("Pieza", tarea, op, maquina, espesor);
+            });
+        });
+    </script>
+    {% else %}
+          <script>
+              $(document).ready(function () {
+                $("#tarea").selectpicker();
+                $("#cantidadCount").selectpicker();
+
+                function load_data(type, tarea, op, maquina, espesor) {
+                    $.ajax({
+                        url: "/cantidadCount",
+                        method: "POST",
+                        data: { type: type, tarea: tarea, op: op, maquina: maquina, espesor: espesor},
+                        dataType: "json",
+                        success: function (data) { //alert(espesor)
+                            var html = "";
+                            html += '<label value="' + data + '"> CANTIDAD DE PIEZAS TOTALES: ' + data + "</label>";
+
+                            if (type == "Espesor") {
+                                $("#espesores").html(html);
+                                $("#espesores").selectpicker("refresh");
+                            } else {
+                                $("#cantidadCount").html(html);
+                                $("#cantidadCount").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#tarea", function () {
+                    var tarea = $("#tarea").val();
+                    var op = '{{ opTexto }}';
+                    var maquina = '{{ maquina }}';
+                    var espesor = '0'
+                    load_data("Pieza", tarea, op, maquina, espesor);
+                });
+            });
+        </script>
+    {% endif %}
     </body>
 
 </html>

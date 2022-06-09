@@ -13,10 +13,12 @@ class Produccion(DataBase):
         print(estados[2])
         return estados[2]
 
-    def cambiarEstadoTurno(self, maquina):
+    def cambiarEstadoTurno(self, maquina, legajo):
         if Produccion().consultarEstadoTurno(maquina) == "0":
             estado = "1"
-            self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos + " (maquina, fechaInicio) VALUES (?,?)", maquina, fecha())
+            usuario = Produccion().getUsuario(legajo)
+            self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos + " (maquina, fechaInicio, usuario) VALUES (?,?,?)",
+                                maquina, fecha(), usuario)
             self.cursor.commit()
             idTurno = Produccion().getIdTurno(maquina)
             print("AAAAAAAAA: " + str(idTurno))
@@ -131,8 +133,12 @@ class Produccion(DataBase):
         return OutputArray
 
     def getPiezas(self, maquina, op):
-        self.cursor.execute("SELECT DISTINCT PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND"
-                            " RUTA_ASIGNADA LIKE '%" + maquina + "%'", op)
+        if maquina == 'SLC' or maquina == 'GBN1' or maquina == 'NST':
+            self.cursor.execute("SELECT DISTINCT PIEZA_NOMBRECOLOR as PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND"
+                                " RUTA_ASIGNADA LIKE '%" + maquina + "%'", op)
+        else:
+            self.cursor.execute("SELECT DISTINCT PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND"
+                                " RUTA_ASIGNADA LIKE '%" + maquina + "%'", op)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -140,6 +146,32 @@ class Produccion(DataBase):
             OutputArray.append(dict(zip(columnNames, record)))
         return OutputArray
 
+    def getUsuario(self, legajo):
+        self.cursor.execute("SELECT usuario FROM " + DataBase.Tablas.tablaUsuarios + " WHERE PIN = ?", legajo)
+        leg = self.cursor.fetchone()[0]
+        self.cursor.close()
+        return leg
+
+    def getCantidad(self, op, pieza, maq, espesor):
+        if maq == "SLC" or maq == "GBN1" or maq == "NST":
+             self.cursor.execute("SELECT COUNT(idPieza) FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND "
+                                 "PIEZA_NOMBRECOLOR = ? AND RUTA_ASIGNADA LIKE '%" + maq + "%'"
+                                 " AND PIEZA_PROFUNDO = ?", op, pieza, espesor)
+        else:
+            self.cursor.execute("SELECT COUNT(idPieza) FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND "
+                                "PIEZA_DESCRIPCION = ? AND RUTA_ASIGNADA LIKE '%" + maq + "%'", op, pieza)
+        cantidad = self.cursor.fetchone()[0]
+        return cantidad
+
+    def getEspesores(self, op, pieza, maq):
+        self.cursor.execute("SELECT DISTINCT PIEZA_PROFUNDO FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND "
+                            "PIEZA_NOMBRECOLOR = ? AND RUTA_ASIGNADA LIKE '%" + maq + "%'", op, pieza)
+        records = self.cursor.fetchall()
+        OutputArray = []
+        columnNames = [column[0] for column in self.cursor.description]
+        for record in records:
+            OutputArray.append(dict(zip(columnNames, record)))
+        return OutputArray
 
     def consultarProceso(self, maquina):
         idTurno = Produccion().getIdTurno(maquina)
@@ -160,3 +192,37 @@ class Produccion(DataBase):
                 return "1"
         else:
             return "2"
+
+    def listaInforme(self, idTurno):
+        self.cursor.execute("""
+            (SELECT CONVERT(smalldatetime, [fechaInicio]) as Fecha
+                  ,'INICIO DE TURNO' as OP
+                  ,usuario as Descripcion
+                  ,null as Cantidad
+              FROM [Prueba].[dbo].[Turnos]
+              WHERE idTurno = ?
+            UNION ALL
+            SELECT 
+                  CONVERT(smalldatetime, [fechaFin]) as Fecha
+                  ,[op] as OP
+                  ,[descripcion] as Descripcion
+                  ,[cantidad] as Cantidad
+              FROM [Prueba].[dbo].[Tareas]
+              WHERE idTurno = ? AND fechaFin IS NOT NULL
+            UNION ALL
+            SELECT 
+                  CONVERT(smalldatetime, [fechaInicio]) as Fecha
+                  ,CONCAT('PARADA: ', DATEDIFF(minute, fechaInicio, [fechaFin]), ' Minutos') as OP
+                  ,[observaciones] as Descripcion
+                  ,null as Cantidad
+              FROM [Prueba].[dbo].[Paradas]
+              WHERE idTurno = ? AND fechaFin IS NOT NULL)
+              ORDER BY Fecha
+        """, idTurno, idTurno, idTurno)
+        records = self.cursor.fetchall()
+        OutputArray = []
+        columnNames = [column[0] for column in self.cursor.description]
+        for record in records:
+            OutputArray.append(dict(zip(columnNames, record)))
+        self.close()
+        return OutputArray
