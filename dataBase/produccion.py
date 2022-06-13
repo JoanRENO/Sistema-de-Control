@@ -13,14 +13,24 @@ class Produccion(DataBase):
         print(estados[2])
         return estados[2]
 
-    def cambiarEstadoTurno(self, maquina, legajo):
+    def cambiarEstadoTurno(self, maquina, legajos):
         if Produccion().consultarEstadoTurno(maquina) == "0":
             estado = "1"
-            usuario = Produccion().getUsuario(legajo)
+            aux = ""
+            for legajo in legajos:
+                us = Produccion().getUsuario(legajo)
+                aux += us + ", "
+            print(aux)
             self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos + " (maquina, fechaInicio, usuario) VALUES (?,?,?)",
-                                maquina, fecha(), usuario)
+                                maquina, fecha(), aux)
             self.cursor.commit()
             idTurno = Produccion().getIdTurno(maquina)
+            print(idTurno)
+            for legajo in legajos:
+                usuario = Produccion().getUsuario(legajo)
+                self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos_usuarios + " (idTurno, idUsuario, nombreUsuario) "
+                                    "VALUES (?, ?, ?)", idTurno, legajo, usuario)
+            self.cursor.commit()
             print("AAAAAAAAA: " + str(idTurno))
             self.cursor.execute("SELECT fechaInicio FROM " + DataBase.Tablas.turnos + " WHERE idTurno = ?", idTurno)
             fechaTurno = self.cursor.fetchone()[0]
@@ -122,6 +132,19 @@ class Produccion(DataBase):
         op = self.cursor.fetchone()[0]
         return op
 
+    def getOPanterior(self, maquina):
+        idTurno = Produccion().getIdTurno(maquina)
+        idTarea = Produccion().getIdTarea(maquina, idTurno)
+        print(idTurno, " + ", idTarea)
+        self.cursor.execute("SELECT MAX(idTarea) FROM " + DataBase.Tablas.tareas + " WHERE idTarea < ? "
+                            " AND idTurno = ?", idTarea, idTurno)
+        idTarea = self.cursor.fetchone()[0]
+        print("AAAA: " + str(idTarea))
+        self.cursor.execute("SELECT op FROM " + DataBase.Tablas.tareas + " WHERE idTarea = ? AND idTurno = ? "
+                            , idTarea, idTurno)
+        op = self.cursor.fetchone()[0]
+        return op
+
     def getListaOp(self, maquina):
         self.cursor.execute("SELECT DISTINCT OP FROM " + DataBase.Tablas.basePiezas +
                             " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' ")
@@ -199,23 +222,23 @@ class Produccion(DataBase):
                   ,'INICIO DE TURNO' as OP
                   ,usuario as Descripcion
                   ,null as Cantidad
-              FROM [Prueba].[dbo].[Turnos]
-              WHERE idTurno = ?
+              FROM """ + DataBase.Tablas.turnos + """
+               WHERE idTurno = ?
             UNION ALL
             SELECT 
                   CONVERT(smalldatetime, [fechaFin]) as Fecha
                   ,[op] as OP
                   ,[descripcion] as Descripcion
                   ,[cantidad] as Cantidad
-              FROM [Prueba].[dbo].[Tareas]
-              WHERE idTurno = ? AND fechaFin IS NOT NULL
+              FROM """ + DataBase.Tablas.tareas + """
+               WHERE idTurno = ? AND fechaFin IS NOT NULL
             UNION ALL
             SELECT 
                   CONVERT(smalldatetime, [fechaInicio]) as Fecha
                   ,CONCAT('PARADA: ', DATEDIFF(minute, fechaInicio, [fechaFin]), ' Minutos') as OP
                   ,[observaciones] as Descripcion
                   ,null as Cantidad
-              FROM [Prueba].[dbo].[Paradas]
+              FROM """ + DataBase.Tablas.paradas + """
               WHERE idTurno = ? AND fechaFin IS NOT NULL)
               ORDER BY Fecha
         """, idTurno, idTurno, idTurno)
@@ -226,3 +249,10 @@ class Produccion(DataBase):
             OutputArray.append(dict(zip(columnNames, record)))
         self.close()
         return OutputArray
+
+    def contarTareas(self, maq):
+        idTurno = Produccion().getIdTurno(maq)
+        self.cursor.execute("SELECT COUNT(idTarea) FROM " + DataBase.Tablas.tareas + " WHERE idTurno = ?", idTurno)
+        cant = self.cursor.fetchone()[0]
+        self.close()
+        return cant

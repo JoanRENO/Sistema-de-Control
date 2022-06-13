@@ -980,6 +980,10 @@ def produccion(maq, opc):
             botonCambioOpStyle = ""
             botonTurnodisabled = ""
             piezas = []
+            if Produccion().contarTareas(maq) > 1:
+                opTexto = Produccion().getOPanterior(maq)
+                Produccion().updateTarea(maq, Produccion().getIdTurno(maq), opTexto)
+                piezas = Produccion().getPiezas(maq, opTexto)
         elif opc == "1":
             botonParadaStyle = ""
             botonParadaTexto = "Parada de Maquina"
@@ -1027,16 +1031,29 @@ def produccion_turno(maq):
     if request.method == 'POST':
         estado = Produccion().consultarEstadoTurno(maq)
         print("ESTADO: " + estado)
+        usuarios = []
         if estado == "0":
-            legajo = request.form['legajo']
-            print(legajo)
-            usuario = LecturaMasiva().verificar_pin(legajo)
+            legajo1 = request.form['legajo1']
+            #print(legajo1)
+            usuario = LecturaMasiva().verificar_pin(legajo1)
             print(usuario)
+            usuarios.append(legajo1)
             if usuario is None:
                 return redirect(url_for('produccion', maq=maq, opc="7"))
+            for i in range(2, 6):
+                print(i)
+                if request.values.get('legajo' + str(i)) is not None:
+                    legajo = request.form['legajo' + str(i)]
+                    print(legajo)
+                    usuario = LecturaMasiva().verificar_pin(legajo)
+                    print(usuario)
+                    if usuario is None:
+                        return redirect(url_for('produccion', maq=maq, opc="7"))
+                    usuarios.append(legajo)
         else:
-            legajo = 0
-        Produccion().cambiarEstadoTurno(maq, legajo)
+            usuarios = []
+        print(usuarios)
+        Produccion().cambiarEstadoTurno(maq, usuarios)
     return redirect(url_for('produccion', maq=maq, opc="0"))
 
 @app.route("/produccion_tarea/<string:maq>/<string:tipo>", methods=["POST"])
