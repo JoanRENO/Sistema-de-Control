@@ -70,16 +70,18 @@ class Produccion(DataBase):
         self.cursor.commit()
         self.close()
 
-    def finalizarTarea(self, maquina, descripcion, cantidad):
+    def finalizarTarea(self, maquina, descripcion, cantidad, reproceso):
         turno = Produccion().getIdTurno(maquina)
         tarea = Produccion().getIdTarea(maquina, turno)
+        if reproceso is None:
+            reproceso = "NO"
         #self.cursor.execute("SELECT CASE WHEN (COUNT(idTarea)) > 1 THEN 1 ELSE 0  FROM " + DataBase.Tablas.tareas + " "
         #                    "WHERE idTurno = ?", turno)
         #aux = self.cursor.fetchone()[0]
         #if aux == 0:
         self.cursor.execute(
-            "UPDATE " + DataBase.Tablas.tareas + " SET fechaFin = ? , descripcion = ? , cantidad = ? "
-            "WHERE idTurno = ? AND idTarea = ?", fecha(), descripcion, cantidad,
+            "UPDATE " + DataBase.Tablas.tareas + " SET fechaFin = ? , descripcion = ? , cantidad = ?, reproceso = ? "
+            "WHERE idTurno = ? AND idTarea = ?", fecha(), descripcion, cantidad, reproceso,
             turno, tarea)
         self.cursor.commit()
         self.close()

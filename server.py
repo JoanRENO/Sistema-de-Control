@@ -40,8 +40,6 @@ def index1(maquina, ventana):
         return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
                                piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
                                ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
-                               , op2=Informe().lista_ops(maquina)
-                               )
     elif ventana == "2":
         display1 = "display:None;"
         display2 = ""
@@ -49,8 +47,6 @@ def index1(maquina, ventana):
         return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
                                piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
                                ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
-                               , op2=Informe().lista_ops(maquina)
-        )
     elif ventana == "3":
         display1 = "display:None;"
         display2 = "display:None;"
@@ -61,8 +57,9 @@ def index1(maquina, ventana):
                                    piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina))
         return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
                                piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
-                               op2=Informe().lista_ops(maquina),
-                               piezas_noleidas=Informe().piezas_noleidas(maquina, request.form['op_informe']))
+                               piezas_noleidas=Informe().piezas_noleidas(maquina, request.form['op_informe'],
+                                request.form['tipobusqueda']), ids_noleidas=Informe().ids_noleidas(maquina,
+                                request.form['op_informe'], request.form['tipobusqueda']))
 
 
 @app.route('/index2/<string:maquina>/<string:ventana>', methods=["POST", "GET"])
@@ -1065,9 +1062,11 @@ def produccion_tarea(maq, tipo):
                 Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
                 return redirect(url_for('produccion', maq=maq, opc="1"))
             if tipo == '2':
+                reproceso = request.values.get('es_reproceso')
+                print("REPROCESO: " + str(reproceso))
                 descripcion = request.form['tarea'] + ' ' + request.form['espesor'] + ' mm'
                 cantidad = request.form['cantidad']
-                Produccion().finalizarTarea(maq, descripcion, cantidad)
+                Produccion().finalizarTarea(maq, descripcion, cantidad, reproceso)
                 Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
                 return redirect(url_for('produccion', maq=maq, opc="0"))
         except werkzeug.exceptions.BadRequestKeyError:
@@ -1076,9 +1075,10 @@ def produccion_tarea(maq, tipo):
                 Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
                 return redirect(url_for('produccion', maq=maq, opc="1"))
             if tipo == '2':
+                reproceso = request.values.get('es_reproceso')
                 descripcion = request.form['tarea']
                 cantidad = request.form['cantidad']
-                Produccion().finalizarTarea(maq, descripcion, cantidad)
+                Produccion().finalizarTarea(maq, descripcion, cantidad, reproceso)
                 Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
                 return redirect(url_for('produccion', maq=maq, opc="0"))
 
@@ -1115,6 +1115,18 @@ def espesores_parte():
         tarea = request.form['tarea']
         espesores = Produccion().getEspesores(op, tarea, maquina)
     return jsonify(espesores)
+
+
+#INFORME
+@app.route("/lista_ops_informe", methods=["POST", "GET"])
+def lista_ops_informe():
+    global OutputArray
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        maquina = request.form['maquina']
+        print(tipo)
+        OutputArray = Informe().lista_ops(maquina, tipo)
+    return jsonify(OutputArray)
 
 
 

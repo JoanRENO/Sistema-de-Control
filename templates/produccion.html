@@ -113,13 +113,11 @@
                                 <input type="number" min="1" max="999" class="form-control" id="cantidad" name="cantidad" required {{ disabledCampos }}>
                             </div>
                             <br>
-                            <!-- <div class="form-check">
-                              <input class="form-check-input" type="checkbox" value="NO" id="es_reproceso" name="es_proceso">
-                              <label class="form-check-label" for="es_reproceso">
-                                  __ Es Reproceso
-                              </label>
-                            </div> 
-                            <br> -->
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" value="NO" id="es_reproceso" name="es_reproceso">
+                              <label class="form-check-label" for="es_reproceso"> -.-  Es Reproceso </label>
+                            </div>
+                            <br>
                             <button type="submit" class="btn btn-primary" {{ botonTareaStyle }}>{{ botonTareaTexto }}</button>
                         </form>
             <br>
@@ -160,7 +158,7 @@
                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                      </form>
                 {% else %}
-                <strong>Ingrese su numero de legajo: </strong>
+                <strong>Ingrese los numeros de legajos de cada trabajador <br> del centro de trabajo:  </strong>
                     <br><br>
                     <form action={{url_for('produccion_turno', maq=maquina)}} method="post">
                         <div class="row" id="form1">
@@ -281,10 +279,9 @@
                             <option value="Problema con sensores">Problema con sensores</option>
                             <option value="Problema con retesteador">Problema con retesteador</option>
                             <option value="Problema con topes">Problema con topes</option>
-                            <option value="Programacion y armado de repsocesos">Programacion y armado de reprocesos</option>
+                            <option value="Programacion y armado de reprocesos">Programacion y armado de reprocesos</option>
                             <option value="Puesta a punto de maquina">Puesta a punto de maquina</option>
                             <option value="Soporte elevador sin material">Soporte elevador sin material</option>
-
                     </select>
                   </div>
               </div>
@@ -486,6 +483,15 @@
                 leg5.disabled = true;
             }
         }
+            var repro = document.getElementById('es_reproceso');
+
+      repro.addEventListener('click', function() {
+            if(repro.checked) {
+              repro.value="SI";
+            } else {
+              repro.value="NOOO";
+            }
+          });
     </script>
     </body>
 
