@@ -12,9 +12,12 @@ class Control(DataBase):
             complete = "SELECT TOP 8 idPieza, PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas + \
                        " where CONVERT (DATE, fechaLectura" + maquina + ") = ? ORDER BY fechaLectura" + maquina + " DESC"
         self.cursor.execute(complete, hoy)
-        data = self.cursor.fetchall()
-        self.close()
-        return data
+        records = self.cursor.fetchall()
+        OutputArray = []
+        columnNames = [column[0] for column in self.cursor.description]
+        for record in records:
+            OutputArray.append(dict(zip(columnNames, record)))
+        return OutputArray
 
     def verificar_cod(self, codigo, maquina):
         if maquina == "HORNO" or maquina == "PLTER":

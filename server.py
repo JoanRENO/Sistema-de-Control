@@ -26,88 +26,159 @@ app.secret_key = "mysecretkey"
 
 # HOME
 @app.route('/')
-def index():
-    return render_template("index.html")
+def menu():
+    return render_template("menu.html")
 
 
-# Escanear codigo y lectura mavisa de piezas
-@app.route('/index1/<string:maquina>/<string:ventana>', methods=["POST", "GET"])
-def index1(maquina, ventana):
-    if ventana == "1":
-        display1 = ""
-        display2 = "display:None;"
-        display3 = "display:None;"
-        return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
-                               ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
-    elif ventana == "2":
-        display1 = "display:None;"
-        display2 = ""
-        display3 = "display:None;"
-        return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
-                               ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
-    elif ventana == "3":
-        display1 = "display:None;"
-        display2 = "display:None;"
-        display3 = ""
-        if maquina in ["PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
-            flash("El informe no se encuentra disponible para esta maquina")
-            return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                                   piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina))
-        return render_template("index1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
-                               piezas_noleidas=Informe().piezas_noleidas(maquina, request.form['op_informe'],
-                                request.form['tipobusqueda']), ids_noleidas=Informe().ids_noleidas(maquina,
-                                request.form['op_informe'], request.form['tipobusqueda']))
+# TURNO / PARADA
+@app.route("/turno/<string:template>/<string:maquina>", methods=["POST"])
+def turno(template, maquina):
+    if request.method == 'POST':
+        estado = Produccion().consultarEstadoTurno(maquina)
+        usuarios = []
+        if estado == "0":
+            legajo1 = request.form['legajo1']
+            usuario = LecturaMasiva().verificar_pin(legajo1)
+            usuarios.append(legajo1)
+            if usuario is None:
+                flash('Error: Legajo ingresado incorrecto')
+                return redirect(url_for('control', maquina=maquina))
+            for i in range(2, 6):
+                print(i)
+                if request.values.get('legajo' + str(i)) is not None:
+                    legajo = request.form['legajo' + str(i)]
+                    print(legajo)
+                    usuario = LecturaMasiva().verificar_pin(legajo)
+                    print(usuario)
+                    if usuario is None:
+                        flash('Error: Legajo ingresado incorrecto')
+                        return redirect(url_for('control', maquina=maquina))
+                    usuarios.append(legajo)
+        Produccion().cambiarEstadoTurno(maquina, usuarios)
+    return redirect(url_for(template, maquina=maquina))
 
 
-@app.route('/index2/<string:maquina>/<string:ventana>', methods=["POST", "GET"])
-def index2(maquina, ventana):
-    if ventana == "1":
-        display1 = ""
-        display2 = "display:None;"
-        return render_template("index2.html", maquina=maquina, display1=display1, display2=display2,
-                               piezas=Control().getTabla(maquina), op2=Informe().lista_ops(maquina))
-    if ventana == "2":
-        display1 = "display:None;"
-        display2 = ""
-        if maquina in ["NST", "FAB", "GBM", "CHN", "LEA", "ALU", "INSUMOS", "PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
-            flash("El informe no se encuentra disponible para esta maquina")
-            return render_template("index2.html", maquina=maquina, piezas=Control().getTabla(maquina),
-                                   display1=display1, display2=display2)
-        return render_template("index2.html", maquina=maquina, piezas=Control().getTabla(maquina),
-                               display1=display1, display2=display2,
-                               piezas_noleidas=Informe().piezas_noleidas(maquina, request.form['op_informe'])
-                               , op2=Informe().lista_ops(maquina))
+@app.route("/parada/<string:template>/<string:maquina>/<string:tipo>", methods=["POST"])
+def parada(template, maquina, tipo):
+    if request.method == 'POST':
+        if tipo == '1':
+            Produccion().iniciarParada(maquina)
+        if tipo == '2':
+            observacion = request.form['observacion']
+            Produccion().finalizarParada(maquina, observacion)
+        return redirect(url_for(template, maquina=maquina))
 
 
-@app.route('/escanear_codigo/<string:maq>/<string:templete>', methods=['POST'])
-def escanear_codigo(maq, templete):
+# CONTROL
+@app.route('/control/<string:maquina>')
+def control(maquina):
+    estado = Produccion().consultarEstadoTurno(maquina)
+    if estado == "0":
+        botonTurnoStyle = "success"
+        botonTurnoTexto = "Inicio Turno"
+        botonTurnoDisabled = ""
+        botonParadaStyle = "disabled"
+        botonParadaTexto = "Parada de Maquina"
+        botonInput = "disabled"
+        piezas = []
+    else:
+        opc = Produccion().consultarProceso(maquina)
+        if opc == "1":
+            botonTurnoDisabled = ""
+            botonParadaTexto = "Parada de Maquina"
+            botonInput = ""
+        else:
+            botonTurnoDisabled = "disabled"
+            botonParadaTexto = "Parada de Maquina: ACTIVO"
+            botonInput = "disabled"
+        botonParadaStyle = ""
+        botonTurnoStyle = "danger"
+        botonTurnoTexto = "Finalizar Turno"
+        piezas = Control().getTabla(maquina)
+    return render_template("control.html", maquina=maquina, piezas=piezas, botonTurnoStyle=botonTurnoStyle, botonTurnoTexto=botonTurnoTexto,
+                           botonTurnoDisabled=botonTurnoDisabled, botonParadaStyle=botonParadaStyle, botonParadaTexto=botonParadaTexto
+                           , botonInput=botonInput)
+
+
+@app.route('/control_escanear/<string:maquina>', methods=['POST'])
+def control_escanear(maquina):
     if request.method == 'POST':
         codigo = request.form['cod_escaneado']
         try:
-            if Control().verificar_cod(codigo, maq) == 1:
-                flash('El codigo ' + codigo + ' ya fue escaneado')
-                if templete == "index1":
-                    return redirect(url_for(templete, maquina=maq, ventana="1"))
-                return redirect(url_for(templete, maquina=maq, ventana="1"))
-            elif Control().verificar_cod(codigo, maq) is None:
-                flash('El codigo ingresado no existe o la maquina no pertenece a la ruta de la pieza')
-                if templete == "index1":
-                    return redirect(url_for(templete, maquina=maq, ventana="1"))
-                return redirect(url_for(templete, maquina=maq, ventana="1"))
+            if Control().verificar_cod(codigo, maquina) == 1:
+                flash('El codigo ' + codigo + ' ya fue escaneado', 'warning')
+            elif Control().verificar_cod(codigo, maquina) is None:
+                flash('El codigo ingresado no existe o la maquina no pertenece a la ruta de la pieza', 'warning')
             else:
-                Control().updatePM(codigo, maq)
-                if templete == "index1":
-                    return redirect(url_for(templete, maquina=maq, ventana="1"))
-                return redirect(url_for(templete, maquina=maq, ventana="1"))
-        except pyodbc.DataError:
+                Control().updatePM(codigo, maquina)
+        except pyodbc.ProgrammingError:
             flash("Error: el codigo ingresado es incorrecto. Intente nuevamente")
-            if templete == "index1":
-                return redirect(url_for(templete, maquina=maq, ventana="1"))
-            return redirect(url_for(templete, maquina=maq, ventana="1"))
+        return redirect(url_for('control', maquina=maquina))
 
+# LECTURA MASIVA
+@app.route('/lectura/<string:maquina>', methods=["POST", "GET"])
+def lectura(maquina):
+    estado = Produccion().consultarEstadoTurno(maquina)
+    if estado == "0":
+        botonTurnoStyle = "success"
+        botonTurnoTexto = "Inicio Turno"
+        botonTurnoDisabled = ""
+        botonParadaStyle = "disabled"
+        botonParadaTexto = "Parada de Maquina"
+        botonInput = "disabled"
+    else:
+        opc = Produccion().consultarProceso(maquina)
+        if opc == "1":
+            botonTurnoDisabled = ""
+            botonParadaTexto = "Parada de Maquina"
+            botonInput = ""
+        else:
+            botonTurnoDisabled = "disabled"
+            botonParadaTexto = "Parada de Maquina: ACTIVO"
+            botonInput = "disabled"
+        botonParadaStyle = ""
+        botonTurnoStyle = "danger"
+        botonTurnoTexto = "Finalizar Turno"
+    return render_template('lectura_masiva.html', maquina=maquina, ops=LecturaMasiva().lista_ops(maquina)
+                           , ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina),
+                           botonTurnoStyle=botonTurnoStyle, botonTurnoTexto=botonTurnoTexto, botonTurnoDisabled=botonTurnoDisabled
+                           , botonParadaStyle=botonParadaStyle, botonParadaTexto=botonParadaTexto, botonInput=botonInput)
+
+
+@app.route('/lectura_masiva/<string:maquina>', methods=['POST'])
+def lectura_masiva(maquina):
+    try:
+        if request.method == 'POST':
+            pin = request.form['pin']
+            usuario = LecturaMasiva().verificar_pin(pin)
+            if usuario is None:
+                flash("Error: el PIN ingresado es incorrecto", 'danger')
+                return redirect(url_for('lectura', maquina=maquina))
+            op = request.form['ops']
+            color = request.form['colores']
+            espesor = request.form['espesores']
+            pieza = request.form['piezas']
+            if pieza == "":
+                cant = 0
+            else:
+                cant = request.form['cant']
+            piezas = LecturaMasiva().verificar_lectura(op, color, espesor, pieza, maquina, cant)
+            if piezas == 1:
+                flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
+                      "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza,
+                      'warning')
+                return redirect(url_for('lectura', maquina=maquina))
+            LecturaMasiva().updateMasivo(piezas, maquina)
+            if pieza == '':
+                LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, None, 0)
+            else:
+                LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, pieza, cant)
+            flash("Lectura masiva realizada con exito. \n OP: " + op + " | COLOR: " + color + " | ESPESOR: " + espesor
+                  + " | PIEZA: " + pieza)
+            return redirect(url_for('lectura', maquina=maquina))
+    except pyodbc.DataError:
+        flash("Error: Por favor ingrese todos los campos", 'danger')
+        return redirect(url_for('lectura', maquina=maquina))
 
 @app.route("/ops", methods=["POST", "GET"])
 def ops():
@@ -172,42 +243,64 @@ def piezas():
     return jsonify(cantidad)
 
 
-@app.route('/lectura_masiva/<string:maq>', methods=['POST'])
-def lectura_masiva(maq):
+# INFORME
+@app.route('/informe/<string:maquina>', methods=["POST", "GET"])
+def informe(maquina):
     try:
-        if request.method == 'POST':
-            pin = request.form['pin']
-            usuario = LecturaMasiva().verificar_pin(pin)
-            if usuario is None:
-                flash("Error: el PIN ingresado es incorrecto", 'danger')
-                return redirect(url_for('index1', maquina=maq, ventana=2))
-            op = request.form['ops']
-            color = request.form['colores']
-            espesor = request.form['espesores']
-            pieza = request.form['piezas']
-            piezas = LecturaMasiva().verificar_lectura(op, color, espesor, pieza, maq)
-            if piezas == 1:
-                flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
-                      "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza,
-                      'warning')
-                return redirect(url_for('index1', maquina=maq, ventana=2))
-            LecturaMasiva().updateMasivo(piezas, maq)
-            if pieza == '':
-                LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maq, None)
+        return render_template('informe.html', maquina=maquina,
+                           piezas_noleidas=Informe().piezas_noleidas(maquina, request.form['op_informe'], request.form['tipobusqueda']),
+                           ids_noleidas=Informe().ids_noleidas(maquina, request.form['op_informe'], request.form['tipobusqueda']))
+    except werkzeug.exceptions.BadRequestKeyError:
+        return render_template('informe.html', maquina=maquina)
+
+
+@app.route("/lista_ops_informe", methods=["POST", "GET"])
+def lista_ops_informe():
+    global OutputArray
+    if request.method == 'POST':
+        tipo = request.form['tipoBusqueda']
+        maquina = request.form['maquina']
+        print(tipo)
+        OutputArray = Informe().lista_ops(maquina, tipo)
+    return jsonify(OutputArray)
+
+
+@app.route('/informeDiario/<string:maquina>')
+def informeDiario(maquina):
+    return render_template("informeDiario.html", maquina=maquina, piezas=Informe().getInformeDiarioTabla(maquina),
+                           ops=Informe().getInformeDiarioOP(maquina),
+                           total=Informe().getInformeDiarioTotal(maquina))
+
+
+# PRODUCTO TERMINADO
+@app.route('/producto_terminado/<string:maquina>')
+def producto_terminado(maquina):
+    return render_template('producto_terminado.html', maquina=maquina, piezas=Control().getTabla(maquina))
+
+
+@app.route('/escanear_PT/<string:maquina>', methods=['POST'])
+def escanear_PT(maquina):
+    if request.method == 'POST':
+        codigo = request.form['cod_escaneado']
+        try:
+            if Control().verificar_cod(codigo, maquina) == 1:
+                flash('El ' + codigo + ' ya fue escaneado', 'warning')
+                return redirect(url_for('producto_terminado', maquina=maquina))
+            elif Control().verificar_cod(codigo, maquina) is None:
+                flash('El PR/MO ingresado no existe')
+                return redirect(url_for('producto_terminado', maquina=maquina))
             else:
-                LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maq, pieza)
-            flash("Lectura masiva realizada con exito. \n OP: " + op + " | COLOR: " + color + " | ESPESOR: " + espesor
-                  + " | PIEZA: " + pieza)
-            return redirect(url_for('index1', maquina=maq, ventana=2))
-    except pyodbc.DataError:
-        flash("Error: Por favor ingrese todos los campos 2", 'danger')
-        return redirect(url_for('index1', maquina=maq, ventana=2))
+                Control().updatePM(codigo, maquina)
+                return redirect(url_for('producto_terminado', maquina=maquina))
+        except pyodbc.DataError:
+            flash("Error: el PR/MO ingresado es incorrecto. Intente nuevamente")
+            return redirect(url_for('producto_terminado', maquina=maquina))
 
 
 # DESPACHO
-@app.route('/index3/<string:maquina>')
-def index3(maquina):
-    return render_template("index3.html", maquina=maquina, sos=Despacho().lista_so(0), clientes=Despacho().lista_cf(0))
+@app.route('/despacho')
+def despacho():
+    return render_template("despacho.html", sos=Despacho().lista_so(0), clientes=Despacho().lista_cf(0))
 
 
 @app.route("/buscar_cf", methods=["POST", "GET"])
@@ -760,6 +853,7 @@ def restos_piezas():
         print(medidas)
         return jsonify(medidas)
 
+
 @app.route('/baja_resto', methods=["POST"])
 def baja_resto():
     try:
@@ -774,360 +868,17 @@ def baja_resto():
         flash('Error: ingrese todas las medidas', 'danger')
     return redirect(url_for('gestion_restos', ventana='2'))
 
+
 @app.route('/activarOP', methods=["POST"])
 def activarOP():
     Resto().activarOP('ACTIVADO')
     return redirect(url_for('gestion_restos', ventana='3'))
 
+
 @app.route('/desactivarOP', methods=["POST"])
 def desactivarOP():
     Resto().activarOP('DESACTIVADO')
     return redirect(url_for('gestion_restos', ventana='3'))
-
-@app.route('/informeDiario')
-def informeDiario():
-    return render_template("informeDiario.html")
-
-#####################
-@app.route('/GBN1/<string:maquina>/<string:ventana>', methods=["POST", "GET"])
-def GBN1(maquina, ventana):
-    if ventana == "1":
-        display1 = ""
-        display2 = "display:None;"
-        display3 = "display:None;"
-        return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
-                               ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
-                               , op2=Informe().lista_ops(maquina)
-                               )
-    elif ventana == "2":
-        display1 = "display:None;"
-        display2 = ""
-        display3 = "display:None;"
-        return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
-                               ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina)
-                               , op2=Informe().lista_ops(maquina)
-        )
-    elif ventana == "3":
-        display1 = "display:None;"
-        display2 = "display:None;"
-        display3 = ""
-        if maquina in ["PLTER", "HORNO", "PLACARD", "PEGADO", "AGUJEREADO"]:
-            flash("El informe no se encuentra disponible para esta maquina")
-            return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                                   piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina))
-        return render_template("GBN1.html", maquina=maquina, display1=display1, display2=display2, display3=display3,
-                               piezas=Control().getTabla(maquina), ops=LecturaMasiva().lista_ops(maquina),
-                               op2=Informe().lista_ops(maquina),
-                               piezas_noleidas=Informe().piezas_noleidas(maquina, request.form['op_informe']))
-
-
-@app.route("/lista_ops_GBN1", methods=["POST", "GET"])
-def lista_ops_GBN1():
-    global OutputArray
-    if request.method == 'POST':
-        tipo = request.form['tipoBusqueda']
-        maquina = request.form['maquina']
-        print(tipo)
-        OutputArray = LecturaMasiva().lista_ops_GBN1(maquina, tipo)
-    return jsonify(OutputArray)
-
-
-@app.route("/ops_GBN1", methods=["POST", "GET"])
-def ops_GBN1():
-    global OutputArray
-    if request.method == 'POST':
-        tipo = request.form['tipoBusqueda']
-        op = request.form['op']
-        maquina = request.form['maquina']
-        print(maquina)
-        print(op)
-        OutputArray = LecturaMasiva().lista_colores_GBN1(op, maquina, tipo)
-    return jsonify(OutputArray)
-
-
-@app.route("/colores_GBN1", methods=["POST", "GET"])
-def colores_GBN1():
-    global OutputArray
-    if request.method == 'POST':
-        tipo = request.form['tipoBusqueda']
-        color = request.form['color']
-        op = request.form['op']
-        maquina = request.form['maquina']
-        print(color)
-        OutputArray = LecturaMasiva().lista_espesores_GBN1(color, op, maquina, tipo)
-    return jsonify(OutputArray)
-
-
-@app.route("/espesores_GBN1", methods=["POST", "GET"])
-def espesores_GBN1():
-    global piezas
-    if request.method == 'POST':
-        tipo = request.form['tipoBusqueda']
-        op = request.form['op']
-        color = request.form['color']
-        espesor = request.form['espesor']
-        maquina = request.form['maquina']
-        print(espesor)
-        piezas = LecturaMasiva().lista_piezas_GBN1(op, color, espesor, maquina, tipo)
-    return jsonify(piezas)
-
-
-@app.route("/espesores_cantidad_GBN1", methods=["POST", "GET"])
-def espesores_cantidad_GBN1():
-    global cantidad
-    if request.method == 'POST':
-        tipo = request.form['tipoBusqueda']
-        op = request.form['op']
-        color = request.form['color']
-        espesor = request.form['espesor']
-        maquina = request.form['maquina']
-        cantidad = LecturaMasiva().calcular_cant_GBN1(op, color, espesor, 1, maquina, tipo)
-    return jsonify(cantidad)
-
-
-@app.route("/piezas_GBN1", methods=["POST", "GET"])
-def piezas_GBN1():
-    global cantidad
-    if request.method == 'POST':
-        tipo = request.form['tipoBusqueda']
-        op = request.form['op']
-        color = request.form['color']
-        espesor = request.form['espesor']
-        pieza = request.form['pieza']
-        maquina = request.form['maquina']
-        print(espesor + " , " + color + " , " + op + " , " + pieza)
-        cantidad = LecturaMasiva().calcular_cant_GBN1(op, color, espesor, pieza, maquina, tipo)
-    return jsonify(cantidad)
-
-
-@app.route('/lectura_masiva_GBN1/<string:maq>', methods=['POST'])
-def lectura_masiva_GBN1(maq):
-    try:
-        if request.method == 'POST':
-            pin = request.form['pin']
-            usuario = LecturaMasiva().verificar_pin(pin)
-            if usuario is None:
-                flash("Error: el PIN ingresado es incorrecto", 'danger')
-                return redirect(url_for('GBN1', maquina=maq, ventana=2))
-            tipo = request.form['tipobusqueda']
-            op = request.form['ops']
-            color = request.form['colores']
-            espesor = request.form['espesores']
-            pieza = request.form['piezas']
-            piezas = LecturaMasiva().verificar_lectura_GBN1(op, color, espesor, pieza, maq, tipo)
-            if piezas == 1:
-                flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
-                      "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza,
-                      'warning')
-                return redirect(url_for('GBN1', maquina=maq, ventana=2))
-            if pieza == '':
-                LecturaMasiva().log_lecturaMasiva_GBN1(usuario, op, color, espesor, maq, None, tipo)
-            else:
-                LecturaMasiva().log_lecturaMasiva_GBN1(usuario, op, color, espesor, maq, pieza, tipo)
-            LecturaMasiva().updateMasivo(piezas, maq)
-            flash("Lectura masiva realizada con exito. \n OP: " + op + " | COLOR: " + color + " | ESPESOR: " + espesor
-                  + " | PIEZA: " + pieza)
-            return redirect(url_for('GBN1', maquina=maq, ventana=2))
-    except pyodbc.DataError:
-        flash("Error: Por favor ingrese todos los campos 2", 'danger')
-        return redirect(url_for('GBN1', maquina=maq, ventana=2))
-
-################# SEGUIMIENTO DE PRODUCCION ######################
-@app.route('/produccion/<string:maq>/<string:opc>', methods=["POST", "GET"])
-def produccion(maq, opc):
-    estado = Produccion().consultarEstadoTurno(maq)
-    if estado == "0":
-        botonTurnoStyle = "success"
-        botonTurnoTexto = "Iniciar Turno"
-        botonParadaStyle = "disabled"
-        botonParadaTexto = "Parada de Maquina"
-        botonCambioOpStyle = "disabled"
-        opTexto = ""
-        opStyle = "disabled"
-        disabledCampos = "disabled"
-        botonTareaStyle = "disabled"
-        botonTareaTexto = "Registrar Tarea"
-        tipoTarea = ""
-        tipoParada = ""
-        idTurno = 0
-        displayCambiarOP = "display:None;"
-        ops = []
-        botonTurnodisabled = ""
-        piezas = []
-        informe = []
-        if opc == "7":
-            flash("Error: el LEGAJO ingresado es incorrecto", 'danger')
-    else:
-        if opc == "4":
-            opc = Produccion().consultarProceso(maq)
-        if opc == "0":
-            botonParadaStyle = "disabled"
-            botonParadaTexto = "Parada de Maquina"
-            opTexto = ""
-            opStyle = "disabled"
-            disabledCampos = "disabled"
-            botonTareaStyle = "disabled"
-            botonTareaTexto = "Registrar Tarea"
-            tipoTarea = "5"
-            tipoParada = "5"
-            displayCambiarOP = "display:None;"
-            ops = Produccion().getListaOp(maq)
-            botonCambioOpStyle = ""
-            botonTurnodisabled = ""
-            piezas = []
-            if Produccion().contarTareas(maq) > 1:
-                opTexto = Produccion().getOPanterior(maq)
-                Produccion().updateTarea(maq, Produccion().getIdTurno(maq), opTexto)
-                piezas = Produccion().getPiezas(maq, opTexto)
-        elif opc == "1":
-            botonParadaStyle = ""
-            botonParadaTexto = "Parada de Maquina"
-            opTexto = Produccion().getOP(maq)
-            opStyle = "disabled"
-            disabledCampos = ""
-            botonTareaStyle = ""
-            botonTareaTexto = "Registrar Tarea"
-            tipoTarea = "2"
-            tipoParada = "3"
-            displayCambiarOP = ""
-            ops = Produccion().getListaOp(maq)
-            botonCambioOpStyle = ""
-            botonTurnodisabled = ""
-            piezas = Produccion().getPiezas(maq, opTexto)
-        else:
-            botonParadaStyle = ""
-            botonParadaTexto = "Parada de Maquina: ACTIVO"
-            opTexto = Produccion().getOP(maq)
-            opStyle = "disabled"
-            disabledCampos = "disabled"
-            botonTareaStyle = "disabled"
-            botonTareaTexto = "Registrar Tarea"
-            tipoTarea = "2"
-            tipoParada = "4"
-            displayCambiarOP = ""
-            ops = []
-            botonCambioOpStyle = 'disabled'
-            botonTurnodisabled = "disabled"
-            piezas = []
-        botonTurnoStyle = "danger"
-        botonTurnoTexto = "Finalizar Turno"
-        idTurno = Produccion().getIdTurno(maq)
-        informe = Produccion().listaInforme(idTurno)
-    return render_template("produccion.html", maquina=maq, botonTurnoStyle=botonTurnoStyle, botonParadaStyle=botonParadaStyle,
-                           botonParadaTexto=botonParadaTexto,
-                           botonTurnoTexto=botonTurnoTexto, opTexto=opTexto, opStyle=opStyle,
-                           disabledCampos=disabledCampos, botonTareaStyle=botonTareaStyle,
-                           botonTareaTexto=botonTareaTexto, tipoParada=tipoParada, idTurno=idTurno, tipoTarea=tipoTarea,
-                           displayCambiarOP=displayCambiarOP, ops=ops, botonCambioOpStyle=botonCambioOpStyle,
-                           botonTurnodisabled=botonTurnodisabled, piezas=piezas, informe=informe)
-
-@app.route("/prouduccion_turno/<string:maq>", methods=["POST"])
-def produccion_turno(maq):
-    if request.method == 'POST':
-        estado = Produccion().consultarEstadoTurno(maq)
-        print("ESTADO: " + estado)
-        usuarios = []
-        if estado == "0":
-            legajo1 = request.form['legajo1']
-            #print(legajo1)
-            usuario = LecturaMasiva().verificar_pin(legajo1)
-            print(usuario)
-            usuarios.append(legajo1)
-            if usuario is None:
-                return redirect(url_for('produccion', maq=maq, opc="7"))
-            for i in range(2, 6):
-                print(i)
-                if request.values.get('legajo' + str(i)) is not None:
-                    legajo = request.form['legajo' + str(i)]
-                    print(legajo)
-                    usuario = LecturaMasiva().verificar_pin(legajo)
-                    print(usuario)
-                    if usuario is None:
-                        return redirect(url_for('produccion', maq=maq, opc="7"))
-                    usuarios.append(legajo)
-        else:
-            usuarios = []
-        print(usuarios)
-        Produccion().cambiarEstadoTurno(maq, usuarios)
-    return redirect(url_for('produccion', maq=maq, opc="0"))
-
-@app.route("/produccion_tarea/<string:maq>/<string:tipo>", methods=["POST"])
-def produccion_tarea(maq, tipo):
-    if request.method == 'POST':
-        try:
-            if tipo == '1':
-                op = request.form['op']
-                Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
-                return redirect(url_for('produccion', maq=maq, opc="1"))
-            if tipo == '2':
-                reproceso = request.values.get('es_reproceso')
-                print("REPROCESO: " + str(reproceso))
-                descripcion = request.form['tarea'] + ' ' + request.form['espesor'] + ' mm'
-                cantidad = request.form['cantidad']
-                Produccion().finalizarTarea(maq, descripcion, cantidad, reproceso)
-                Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
-                return redirect(url_for('produccion', maq=maq, opc="0"))
-        except werkzeug.exceptions.BadRequestKeyError:
-            if tipo == '1':
-                op = request.form['op']
-                Produccion().updateTarea(maq, Produccion().getIdTurno(maq), op)
-                return redirect(url_for('produccion', maq=maq, opc="1"))
-            if tipo == '2':
-                reproceso = request.values.get('es_reproceso')
-                descripcion = request.form['tarea']
-                cantidad = request.form['cantidad']
-                Produccion().finalizarTarea(maq, descripcion, cantidad, reproceso)
-                Produccion().iniciarTarea(maq, Produccion().getIdTurno(maq))
-                return redirect(url_for('produccion', maq=maq, opc="0"))
-
-
-
-@app.route("/prouduccion_parada/<string:maq>/<string:tipo>", methods=["POST"])
-def prouduccion_parada(maq, tipo):
-    if request.method == 'POST':
-        if tipo == '3':
-            Produccion().iniciarParada(maq)
-            return redirect(url_for('produccion', maq=maq, opc="2"))
-        if tipo == '4':
-            observacion = request.form['observacion']
-            Produccion().finalizarParada(maq, observacion)
-        return redirect(url_for('produccion', maq=maq, opc="1"))
-
-@app.route("/cantidadCount", methods=["POST", "GET"])
-def cantidadCount():
-    global cantidad
-    if request.method == 'POST':
-        maquina = request.form['maquina']
-        op = request.form['op']
-        tarea = request.form['tarea']
-        espesor = request.form['espesor']
-        cantidad = Produccion().getCantidad(op, tarea, maquina, espesor)
-    return jsonify(cantidad)
-
-@app.route("/espesores_parte", methods=["POST", "GET"])
-def espesores_parte():
-    global espesores
-    if request.method == 'POST':
-        maquina = request.form['maquina']
-        op = request.form['op']
-        tarea = request.form['tarea']
-        espesores = Produccion().getEspesores(op, tarea, maquina)
-    return jsonify(espesores)
-
-
-#INFORME
-@app.route("/lista_ops_informe", methods=["POST", "GET"])
-def lista_ops_informe():
-    global OutputArray
-    if request.method == 'POST':
-        tipo = request.form['tipoBusqueda']
-        maquina = request.form['maquina']
-        print(tipo)
-        OutputArray = Informe().lista_ops(maquina, tipo)
-    return jsonify(OutputArray)
-
 
 
 

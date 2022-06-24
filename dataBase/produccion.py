@@ -10,8 +10,15 @@ class Produccion(DataBase):
         row = self.cursor.fetchone()
         self.close()
         estados = re.split("-", row[0])
-        print(estados[2])
         return estados[2]
+
+    def verificarIdTurno(self, maquina, idTurno):
+        self.cursor.execute("SELECT idTurno FROM " + DataBase.Tablas.turnos + " WHERE maquina = ? AND idTurno = ?",
+                            maquina, idTurno)
+        if self.cursor.fetchone() is None:
+            return 0
+        else:
+            return 1
 
     def cambiarEstadoTurno(self, maquina, legajos):
         if Produccion().consultarEstadoTurno(maquina) == "0":
@@ -20,156 +27,64 @@ class Produccion(DataBase):
             for legajo in legajos:
                 us = Produccion().getUsuario(legajo)
                 aux += us + ", "
-            print(aux)
-            self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos + " (maquina, fechaInicio, usuario) VALUES (?,?,?)",
-                                maquina, fecha(), aux)
-            self.cursor.commit()
-            idTurno = Produccion().getIdTurno(maquina)
-            print(idTurno)
-            for legajo in legajos:
-                usuario = Produccion().getUsuario(legajo)
-                self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos_usuarios + " (idTurno, idUsuario, nombreUsuario) "
-                                    "VALUES (?, ?, ?)", idTurno, legajo, usuario)
-            self.cursor.commit()
-            print("AAAAAAAAA: " + str(idTurno))
-            self.cursor.execute("SELECT fechaInicio FROM " + DataBase.Tablas.turnos + " WHERE idTurno = ?", idTurno)
-            fechaTurno = self.cursor.fetchone()[0]
-            print("BBBBBBBBB: " + str(fechaTurno))
-            self.cursor.execute("INSERT INTO " + DataBase.Tablas.tareas + "(idTurno, fechaInicio, maquina) VALUES "
-                                " (?,?,?)", idTurno, fechaTurno, maquina)
-            self.cursor.commit()
+            idTurno = Produccion().getIdTurno()
+            if Produccion().verificarIdTurno(maquina, idTurno) == 0:
+                self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos + " (idTurno, maquina, fechaInicio, usuario) VALUES (?,?,?,?)",
+                                    idTurno, maquina, fecha(), aux)
+                self.cursor.commit()
+                for legajo in legajos:
+                    usuario = Produccion().getUsuario(legajo)
+                    self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos_usuarios + " (idTurno, idUsuario, nombreUsuario) "
+                                        "VALUES (?, ?, ?)", idTurno, legajo, usuario)
+                self.cursor.commit()
         else:
             estado = "0"
             date = fecha()
-            idTurno = Produccion().getIdTurno(maquina)
-            self.cursor.execute("UPDATE " + DataBase.Tablas.turnos + " SET fechaFin = ? WHERE idTurno = ?", date,
-                                Produccion().getIdTurno(maquina))
-            self.cursor.execute("DELETE FROM " + DataBase.Tablas.tareas + " WHERE idTarea = "
-                                "(SELECT MAX(idTarea) FROM " + DataBase.Tablas.tareas + " WHERE idTurno = ?) ", idTurno)
+            idTurno = Produccion().getIdTurno()
+            self.cursor.execute("UPDATE " + DataBase.Tablas.turnos + " SET fechaFin = ? WHERE idTurno = ? AND maquina = ?"
+                                , date, idTurno, maquina)
         self.cursor.execute("UPDATE " + DataBase.Tablas.turnos + " SET maquina = '" + maquina + "-TURNO-" + estado + "' WHERE "
                             "maquina LIKE '" + maquina + "-TURNO-%'")
         self.cursor.commit()
         self.close()
 
-
-    def iniciarTarea(self, maquina, turno):
-        #self.cursor.execute("INSERT INTO " + DataBase.Tablas.tareas + " (idTurno, fechaInicio, op, maquina) VALUES "
-                            #"(?, ?, ?, ?)", turno, fecha(), op, maquina)
-        #self.cursor.commit()
-        self.cursor.execute("SELECT MAX(fechaFin) FROM " + DataBase.Tablas.tareas + " WHERE idTurno = ?", turno)
-        date = self.cursor.fetchone()[0]
-        self.cursor.execute("INSERT INTO " + DataBase.Tablas.tareas + " (maquina, fechaInicio, idTurno) VALUES (?,?, ?)",
-                            maquina, date, turno)
+    def iniciarParada(self, maquina):
+        idTurno = Produccion().getIdTurno()
+        idParada = Produccion().getIdParada(maquina, idTurno)
+        self.cursor.execute("INSERT INTO " + DataBase.Tablas.paradas + " (idParada, idTurno, fechaInicio, maquina)"
+                            " VALUES (?,?,?,?)", idParada, idTurno, fecha(), maquina)
         self.cursor.commit()
         self.close()
 
-    def updateTarea(self, maquina, turno, op):
-        idTarea = Produccion().getIdTarea(maquina, turno)
-        self.cursor.execute("UPDATE " + DataBase.Tablas.tareas + " SET op = ? WHERE idTurno = ? AND idTarea = ?"
-                            , op, turno, idTarea)
-        self.cursor.commit()
-        self.close()
-
-    def finalizarTarea(self, maquina, descripcion, cantidad, reproceso):
-        turno = Produccion().getIdTurno(maquina)
-        tarea = Produccion().getIdTarea(maquina, turno)
-        if reproceso is None:
-            reproceso = "NO"
-        #self.cursor.execute("SELECT CASE WHEN (COUNT(idTarea)) > 1 THEN 1 ELSE 0  FROM " + DataBase.Tablas.tareas + " "
-        #                    "WHERE idTurno = ?", turno)
-        #aux = self.cursor.fetchone()[0]
-        #if aux == 0:
-        self.cursor.execute(
-            "UPDATE " + DataBase.Tablas.tareas + " SET fechaFin = ? , descripcion = ? , cantidad = ?, reproceso = ? "
-            "WHERE idTurno = ? AND idTarea = ?", fecha(), descripcion, cantidad, reproceso,
-            turno, tarea)
-        self.cursor.commit()
-        self.close()
-
-    def iniciarParada(self, maq):
-        idTurno = Produccion().getIdTurno(maq)
-        idTarea = Produccion().getIdTarea(maq, idTurno)
-        self.cursor.execute("INSERT INTO " + DataBase.Tablas.paradas + " (idTarea, idTurno, fechaInicio, maquina)"
-                            " VALUES (?,?,?,?)", idTarea, idTurno, fecha(), maq)
-        self.cursor.commit()
-        self.close()
-
-    def finalizarParada(self, maq, observacion):
-        idTurno = Produccion().getIdTurno(maq)
-        idTarea = Produccion().getIdTarea(maq, idTurno)
-        idParada = Produccion().getIdParada(maq, idTurno, idTarea)
-        self.cursor.execute("UPDATE " + DataBase.Tablas.paradas + " SET fechafin = ?, observaciones = ? "
-                            "WHERE idTurno = ? AND idTarea = ? AND idParada = ?"
-                            , fecha(), observacion, idTurno, idTarea, idParada)
+    def finalizarParada(self, maquina, observacion):
+        idTurno = Produccion().getIdTurno()
+        idParada = Produccion().getIdParada(maquina, idTurno)
+        self.cursor.execute("UPDATE " + DataBase.Tablas.paradas + " SET fechafin = ?, observacion = ? "
+                            "WHERE idTurno = ? AND maquina = ? AND idParada = ?-1"
+                            , fecha(), observacion, idTurno, maquina, idParada)
         self.cursor.commit()
         self.close()
 
 
 ##################################### GET #######################################
-    def getIdTurno(self, maquina):
-        self.cursor.execute("SELECT MAX(idTurno) FROM " + DataBase.Tablas.turnos + " WHERE maquina = ?", maquina)
+    def getIdTurno(self):
+        self.cursor.execute("""
+                SELECT [idTurno]
+                FROM [dbo].[baseTurnos]
+                WHERE GETDATE() > fechaInicio AND GETDATE() < fechaFin
+        """)
         idTurno = self.cursor.fetchone()[0]
         return idTurno
 
-    def getIdTarea(self, maquina, turno):
-        print(maquina + " + " + str(turno))
-        self.cursor.execute("SELECT MAX(idTarea) FROM " + DataBase.Tablas.tareas + " WHERE maquina = ? AND idTurno = ? "
+    def getIdParada(self, maquina, turno):
+        self.cursor.execute("SELECT MAX(idParada) FROM " + DataBase.Tablas.paradas + " WHERE maquina = ? AND idTurno = ?"
                             , maquina, turno)
-        idTarea = self.cursor.fetchone()[0]
-        return idTarea
-
-    def getIdParada(self, maquina, turno, tarea):
-        self.cursor.execute("SELECT MAX(idParada) FROM " + DataBase.Tablas.paradas + " WHERE maquina = ? AND idTurno = ? "
-                            "AND idTarea = ?"
-                            , maquina, turno, tarea)
-        idTurno = self.cursor.fetchone()[0]
-        return idTurno
-
-    def getOP(self, maquina):
-        idTurno = Produccion().getIdTurno(maquina)
-        idTarea = Produccion().getIdTarea(maquina, idTurno)
-        print(idTurno, " + ", idTarea)
-        self.cursor.execute("SELECT op FROM " + DataBase.Tablas.tareas + " WHERE idTarea = ? AND idTurno = ? "
-                            , idTarea, idTurno)
-        op = self.cursor.fetchone()[0]
-        return op
-
-    def getOPanterior(self, maquina):
-        idTurno = Produccion().getIdTurno(maquina)
-        idTarea = Produccion().getIdTarea(maquina, idTurno)
-        print(idTurno, " + ", idTarea)
-        self.cursor.execute("SELECT MAX(idTarea) FROM " + DataBase.Tablas.tareas + " WHERE idTarea < ? "
-                            " AND idTurno = ?", idTarea, idTurno)
-        idTarea = self.cursor.fetchone()[0]
-        print("AAAA: " + str(idTarea))
-        self.cursor.execute("SELECT op FROM " + DataBase.Tablas.tareas + " WHERE idTarea = ? AND idTurno = ? "
-                            , idTarea, idTurno)
-        op = self.cursor.fetchone()[0]
-        return op
-
-    def getListaOp(self, maquina):
-        self.cursor.execute("SELECT DISTINCT OP FROM " + DataBase.Tablas.basePiezas +
-                            " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' ")
-        records = self.cursor.fetchall()
-        OutputArray = []
-        columnNames = [column[0] for column in self.cursor.description]
-        for record in records:
-            OutputArray.append(dict(zip(columnNames, record)))
-        return OutputArray
-
-    def getPiezas(self, maquina, op):
-        if maquina == 'SLC' or maquina == 'GBN1' or maquina == 'NST':
-            self.cursor.execute("SELECT DISTINCT PIEZA_NOMBRECOLOR as PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND"
-                                " RUTA_ASIGNADA LIKE '%" + maquina + "%'", op)
+        aux = self.cursor.fetchone()
+        if aux is None or aux[0] is None:
+            idTurno = 1
         else:
-            self.cursor.execute("SELECT DISTINCT PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND"
-                                " RUTA_ASIGNADA LIKE '%" + maquina + "%'", op)
-        records = self.cursor.fetchall()
-        OutputArray = []
-        columnNames = [column[0] for column in self.cursor.description]
-        for record in records:
-            OutputArray.append(dict(zip(columnNames, record)))
-        return OutputArray
+            idTurno = aux[0] + 1
+        return idTurno
 
     def getUsuario(self, legajo):
         self.cursor.execute("SELECT usuario FROM " + DataBase.Tablas.tablaUsuarios + " WHERE PIN = ?", legajo)
@@ -177,44 +92,16 @@ class Produccion(DataBase):
         self.cursor.close()
         return leg
 
-    def getCantidad(self, op, pieza, maq, espesor):
-        if maq == "SLC" or maq == "GBN1" or maq == "NST":
-             self.cursor.execute("SELECT COUNT(idPieza) FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND "
-                                 "PIEZA_NOMBRECOLOR = ? AND RUTA_ASIGNADA LIKE '%" + maq + "%'"
-                                 " AND PIEZA_PROFUNDO = ?", op, pieza, espesor)
-        else:
-            self.cursor.execute("SELECT COUNT(idPieza) FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND "
-                                "PIEZA_DESCRIPCION = ? AND RUTA_ASIGNADA LIKE '%" + maq + "%'", op, pieza)
-        cantidad = self.cursor.fetchone()[0]
-        return cantidad
-
-    def getEspesores(self, op, pieza, maq):
-        self.cursor.execute("SELECT DISTINCT PIEZA_PROFUNDO FROM " + DataBase.Tablas.basePiezas + " WHERE OP = ? AND "
-                            "PIEZA_NOMBRECOLOR = ? AND RUTA_ASIGNADA LIKE '%" + maq + "%'", op, pieza)
-        records = self.cursor.fetchall()
-        OutputArray = []
-        columnNames = [column[0] for column in self.cursor.description]
-        for record in records:
-            OutputArray.append(dict(zip(columnNames, record)))
-        return OutputArray
-
     def consultarProceso(self, maquina):
-        idTurno = Produccion().getIdTurno(maquina)
-        idTarea = Produccion().getIdTarea(maquina, idTurno)
-        self.cursor.execute("SELECT fechaFin FROM " + DataBase.Tablas.paradas + " WHERE idParada = "
-                            "(SELECT MAX(idParada) FROM " + DataBase.Tablas.paradas + " WHERE idTurno = ? AND idTarea = ?)"
-                            , idTurno, idTarea)
+        idTurno = Produccion().getIdTurno()
+        self.cursor.execute("SELECT fechaFin FROM " + DataBase.Tablas.paradas +
+                            " WHERE idTurno = ? AND maquina = ? AND idParada = "
+                            "(SELECT MAX(idParada) FROM " + DataBase.Tablas.paradas + " WHERE idTurno = ? AND maquina = ?)"
+                            , idTurno, maquina, idTurno, maquina)
         aux1 = self.cursor.fetchone()
-        print(aux1)
+        print("PARADA: " + str(aux1))
         if (aux1 is None) or (aux1[0] is not None):
-            self.cursor.execute("SELECT fechaFin FROM " + DataBase.Tablas.tareas + " WHERE idTurno = ? AND idTarea = ?",
-                                idTurno, idTarea)
-            aux2 = self.cursor.fetchone()
-            print(aux2)
-            if (aux2 is None) or (aux2[0] is not None):
-                pass
-            else:
-                return "1"
+            return "1"
         else:
             return "2"
 
@@ -251,10 +138,3 @@ class Produccion(DataBase):
             OutputArray.append(dict(zip(columnNames, record)))
         self.close()
         return OutputArray
-
-    def contarTareas(self, maq):
-        idTurno = Produccion().getIdTurno(maq)
-        self.cursor.execute("SELECT COUNT(idTarea) FROM " + DataBase.Tablas.tareas + " WHERE idTurno = ?", idTurno)
-        cant = self.cursor.fetchone()[0]
-        self.close()
-        return cant

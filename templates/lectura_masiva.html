@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+     <meta charset="utf-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+  </head>
+
+      <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+      <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" style="font-size:xx-large;" title="Volver al menu principal">reno</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('control', maquina=maquina)}}>Control</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Lectura Masiva</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('informe', maquina=maquina)}}>Informe</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 order-md-1">
+                    <div class="row">
+                        <h2 class="mb-3">Lectura Masiva de Piezas: {{ maquina }}</h2>
+                        <button id="boton_alta" class="btn btn-{{ botonTurnoStyle }} ml-auto" data-toggle="modal" data-target="#modalturno" {{ botonTurnoDisabled }}>
+                            <strong>{{ botonTurnoTexto }}</strong>
+                        </button>
+                    </div>
+                    <br>
+                    <div class="text-center">
+                        <button class="btn btn-primary" data-toggle="modal" data-target="#modalparada" {{ botonParadaStyle }}>
+                            {{ botonParadaTexto }}
+                        </button>
+                    </div>
+                    <br>
+                      {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'message' %}
+                                  <div class="alert alert-success" role="alert">
+                                {% else %}
+                                  <div class="alert alert-{{ category }}" role="alert">
+                                {% endif %}
+                                  <strong>{{ message }}</strong>
+                                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                  </button>
+                                </div>
+                            {% endfor %}
+                          {% endif %}
+                      {% endwith %}
+                    <form action={{url_for('lectura_masiva', maquina=maquina)}} method="POST">
+                        <div class="form-group">
+                            <label for="ops">OP:</label>
+                            <select name="ops" data-live-search="true" id="ops" class="form-control" required>
+                            <option selected></option>
+                            {% for row in ops %}
+                            <option value="{{row['OP']}}">{{row['OP']}}</option>
+                            {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="colores">Color:</label>
+                            <select name="colores" data-live-search="true" id="colores" class="form-control" required>
+                            <option selected></option>
+                            </select>
+
+                        </div>
+                        <div class="form-group">
+                            <label for="espesores">Espesor:</label>
+                            <select name="espesores" data-live-search="true" id="espesores" class="form-control" required>
+                            <option selected></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="piezas">Pieza:</label>
+                            <select name="piezas" data-live-search="true" id="piezas" class="form-control">
+                            <option selected></option>
+                            </select>
+                        </div>
+                        <div><label id="cantidad" name="cantidad"></label></div>
+                        <div><button type="button" class="btn btn-success" data-toggle="modal" data-target="#verModal" {{ botonInput }}>Dar de baja piezas</button></div>
+                        <div class="modal fade" role="dialog" id="verModal">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-body">
+                                        <div class="form-group">
+                                            <label for="pin">Ingrese PIN: </label>
+                                            <input type="password" name="pin" id="pin" class="form-control" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-success">OK</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                    <br><hr><br>
+                    <table class="table table-dark table-striped">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Usuario</th>
+                                    <th scope="col">Fecha</th>
+                                    <th scope="col">OP</th>
+                                    <th scope="col">Color</th>
+                                    <th scope="col">Espesor</th>
+                                    <th scope="col">Pieza</th>
+                                    <th scope="col">Cantidad</th>
+                                    <th scope="col">Maquina</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                              {% for lectura in ops_masivo %}
+                              <tr>
+                                <td>{{lectura['Usuario']}}</td>
+                                <td>{{lectura['fechaMod']}}</td>
+                                <td>{{lectura['OP']}}</td>
+                                <td>{{lectura['Color']}}</td>
+                                <td>{{lectura['Espesor']}}</td>
+                                <td>{{lectura['Pieza']}}</td>
+                                <td>{{lectura['Cantidad']}}</td>
+                                <td>{{lectura['maquina']}}</td>
+                              </tr>
+                              {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    </div>
+                    <br>
+                    <button id="informeDiario" class="btn btn-secondary">Ver Informe Diario</button>
+                <br><br>
+                </div>
+            </div>
+        </div>
+      </div>
+            <!-- Modal Turno -->
+            <div class="modal fade" id="modalturno" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                {% if botonTurnoTexto == "Finalizar Turno" %}
+                  <strong>Desea Finalizar Turno? </strong>
+                    <br><br>
+                    <form action={{url_for('turno', template="lectura", maquina=maquina)}} method="POST">
+                         <button type="submit" class="btn btn-primary">Aceptar</button>
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                     </form>
+                {% else %}
+                <strong>Ingrese los numeros de legajos de cada trabajador <br> del centro de trabajo:  </strong>
+                    <br><br>
+                    <form action={{url_for('turno', template="lectura", maquina=maquina)}} method="POST">
+                        <div class="row" id="form1">
+                            <div class="col-xs-10">
+                            <input type="text" class="form-control" id="legajo1" name="legajo1" placeholder="Legajo 1" autofocus="autofocus" required>
+                            </div>
+                            <div class="col-xs-2">
+                            <button class="btn btn-primary btn-sm" type="button" onclick="myFunction1()"><strong>+</strong></button>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row" id="form2" style="display:None;">
+                            <div class="col-xs-10">
+                            <input type="text" class="form-control" id="legajo2" name="legajo2" placeholder="Legajo 2" required disabled>
+                            </div>
+                            <div class="col-xs-2">
+                            <button class="btn btn-primary btn-sm" onclick="myFunction2()"><strong>+</strong></button>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row" id="form3" style="display:None;">
+                            <div class="col-xs-10">
+                            <input type="text" class="form-control" id="legajo3" name="legajo3" placeholder="Legajo 3" required disabled>
+                            </div>
+                            <div class="col-xs-2">
+                            <button class="btn btn-primary btn-sm" onclick="myFunction3()"><strong>+</strong></button>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row" id="form4" style="display:None;">
+                            <div class="col-xs-10">
+                            <input type="text" class="form-control" id="legajo4" name="legajo4" placeholder="Legajo 4" required disabled>
+                            </div>
+                            <div class="col-xs-2">
+                            <button class="btn btn-primary btn-sm" onclick="myFunction4()"><strong>+</strong></button>
+                            </div>
+                        </div>
+                        <br>
+                        <div class="row" id="form5" style="display:None;">
+                            <div class="col-xs-10">
+                            <input type="text" class="form-control" id="legajo5" name="legajo5" placeholder="Legajo 5" required disabled>
+                            </div>
+                            <div class="col-xs-2">
+                            <button class="btn btn-primary btn-sm" disabled><strong>+</strong></button>
+                            </div>
+                        </div>
+                        <br>
+
+                         <button type="submit" class="btn btn-primary">Aceptar</button>
+                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                     </form>
+                  {% endif %}
+              </div>
+            </div>
+            </div>
+            </div>
+            {% if botonTurnoDisabled == 'disabled' %}
+    <!-- Modal Parada -->
+            <div class="modal fade" id="modalparada" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                <strong>Desea finalizar la parada de Maquina ?</strong>
+                <form action={{url_for('parada', template="lectura", maquina=maquina, tipo="2")}} method="post">
+                  <div class="mb-3">
+                    <label for="observacion" class="col-form-label">Observacion:</label>
+                    <select name="observacion" data-live-search="true" id="observacion" class="form-control selectpicker" required>
+                            <option selected></option>
+                            <option value="Cambio de correas">Cambio de correas</option>
+                            <option value="Cambio de filos">Cambio de filos</option>
+                            <option value="Cambio de herramientas">Cambio de herramientas</option>
+                            <option value="Cambio de sierra">Cambio de sierra</option>
+                            <option value="Corte de energia">Corte de energia</option>
+                            <option value="Descanso">Descanso</option>
+                            <option value="Esperar temperatura">Esperar temperatura</option>
+                            <option value="Informacion no transmitida">Informacion no transmitida</option>
+                            <option value="Maquina parada por mantenimiento">Maquina parada por mantenimiento</option>
+                            <option value="Movimiento de materiales">Movimiento de materiales</option>
+                            <option value="Planos no generados">Planos no generados</option>
+                            <option value="Prob con Aire Comprimido">Prob con Aire Comprimido</option>
+                            <option value="Problema con Bironcar">Problema con Bironcar</option>
+                            <option value="Problema con cuchillas">Problema con cuchillas</option>
+                            <option value="Problema con el palpador">Problema con el palpador</option>
+                            <option value="Problema con sensores">Problema con sensores</option>
+                            <option value="Problema con retesteador">Problema con retesteador</option>
+                            <option value="Problema con topes">Problema con topes</option>
+                            <option value="Programacion y armado de reprocesos">Programacion y armado de reprocesos</option>
+                            <option value="Puesta a punto de maquina">Puesta a punto de maquina</option>
+                            <option value="Soporte elevador sin material">Soporte elevador sin material</option>
+                    </select>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Aceptar</button>
+              </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+            </div>
+            </div>
+    {% else %}
+          <!-- Modal Parada -->
+            <div class="modal fade" id="modalparada" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-body">
+                <strong>Desea parar la maquina ?</strong>
+              </div>
+              <div class="modal-footer">
+                <form action={{url_for('parada', template="lectura", maquina=maquina, tipo="1")}} method="post">
+                <button type="submit" class="btn btn-primary">Aceptar</button>
+                </form>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+              </div>
+            </div>
+            </div>
+            </div>
+    {% endif %}
+
+            <script>
+             function myFunction1() {
+                var div2 = document.getElementById('form2');
+                var leg2 = document.getElementById('legajo2');
+                if (div2.style.display === "none") {
+                    div2.style.display = "block";
+                    leg2.disabled = false;
+                } else {
+                    div2.style.display = "none";
+                    leg2.disabled = true;
+                }
+            }
+            function myFunction2() {
+                var div3 = document.getElementById('form3');
+                var leg3 = document.getElementById('legajo3');
+                if (div3.style.display === "none") {
+                    div3.style.display = "block";
+                    leg3.disabled = false;
+                } else {
+                    div3.style.display = "none";
+                    leg3.disabled = true;
+                }
+            }
+            function myFunction3() {
+                var div4 = document.getElementById('form4');
+                var leg4 = document.getElementById('legajo4');
+                if (div4.style.display === "none") {
+                    div4.style.display = "block";
+                    leg4.disabled = false;
+                } else {
+                    div4.style.display = "none";
+                    leg4.disabled = true;
+                }
+            }
+            function myFunction4() {
+                var div5 = document.getElementById('form5');
+                var leg5 = document.getElementById('legajo5');
+                if (div5.style.display === "none") {
+                    div5.style.display = "block";
+                    leg5.disabled = false;
+                } else {
+                    div5.style.display = "none";
+                    leg5.disabled = true;
+                }
+            }
+        </script>
+
+        <script>
+            $(document).ready(function () {
+                $("#ops").selectpicker();
+                $("#colores").selectpicker();
+
+                function load_data(type, op, maquina) {
+                    $.ajax({
+                        url: "/ops",
+                        method: "POST",
+                        data: { type: type, op: op, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(op)
+                            var html = "<option selected></option>";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<option value="' + data[count].PIEZA_NOMBRECOLOR + '">' + data[count].PIEZA_NOMBRECOLOR + "</option>";
+                            }
+                            if (type == "OP") {
+                                $("#ops").html(html);
+                                $("#ops").selectpicker("refresh");
+                            } else {
+                                $("#colores").html(html);
+                                $("#colores").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#ops", function () {
+                    var op = $("#ops").val();
+					var maquina = '{{ maquina }}';
+                    load_data("Color", op, maquina);
+                });
+            });
+        </script>
+        <script>
+            $(document).ready(function () {
+                $("#colores").selectpicker();
+                $("#espesores").selectpicker();
+
+                function load_data(type, op, color, maquina) {
+                    $.ajax({
+                        url: "/colores",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(color)
+                            var html = "<option selected></option>";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<option value="' + data[count].PIEZA_PROFUNDO + '">' + data[count].PIEZA_PROFUNDO + "</option>";
+                            }
+                            if (type == "Color") {
+                                $("#colores").html(html);
+                                $("#colores").selectpicker("refresh");
+                            } else {
+                                $("#espesores").html(html);
+                                $("#espesores").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#colores", function () {
+                    var op = $("#ops").val();
+                    var color = $("#colores").val();
+					var maquina = '{{ maquina }}';
+                    load_data("Espesor", op, color, maquina);
+                });
+            });
+        </script>
+        <script>
+              $(document).ready(function () {
+                $("#ops").selectpicker();
+                $("#colores").selectpicker();
+                $("#espesores").selectpicker();
+
+                function load_data(type, op, color, espesor, maquina) {
+                    $.ajax({
+                        url: "/espesores",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, espesor: espesor, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(espesor)
+                            var html = "<option selected></option>";
+                            for (var count = 0; count < data.length; count++) {
+                                html += '<option value="' + data[count].PIEZA_DESCRIPCION + '">' + data[count].PIEZA_DESCRIPCION + "</option>";
+                                }
+
+                            if (type == "Espesor") {
+                                $("#espesores").html(html);
+                                $("#espesores").selectpicker("refresh");
+                            } else {
+                                $("#piezas").html(html);
+                                $("#piezas").selectpicker("refresh");
+                            }
+                        },
+                    });
+                    $.ajax({
+                        url: "/espesores_cantidad",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, espesor: espesor, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(espesor)
+                            var html = "";
+                            html += '<label value="' + data[0].CANTIDAD + '"> CANTIDAD DE PIEZAS SELECCIONADAS: ' + data[0].CANTIDAD + "</label>";
+
+                            if (type == "Espesor") {
+                                $("#espesores").html(html);
+                                $("#espesores").selectpicker("refresh");
+                            } else {
+                                $("#cantidad").html(html);
+                                $("#cantidad").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#espesores", function () {
+                    var op = $("#ops").val();
+                    var color = $("#colores").val();
+                    var espesor = $("#espesores").val();
+					var maquina = '{{ maquina }}';
+                    load_data("Pieza", op, color, espesor, maquina);
+                });
+            });
+        </script>
+        <script>
+              $(document).ready(function () {
+                $("#ops").selectpicker();
+                $("#colores").selectpicker();
+                $("#espesores").selectpicker();
+                $("#pieza").selectpicker();
+
+                function load_data(type, op, color, espesor, pieza, maquina) {
+                    $.ajax({
+                        url: "/piezas",
+                        method: "POST",
+                        data: { type: type, op: op, color: color, espesor: espesor, pieza: pieza, maquina: maquina },
+                        dataType: "json",
+                        success: function (data) { //alert(pieza)
+                            var html = "";
+
+                            html += '<label for="cant">CANTIDAD DE PIEZAS REALIZADAS: </label>' +
+                            '<input class="form-control" type="number" id="cant" name="cant" min="1" max="' + data[0].CANTIDAD + '" placeholder="CANT EN EL SISTEMA: ' + data[0].CANTIDAD + '"><br>';
+
+                            if (type == "Pieza") {
+                                $("#piezas").html(html);
+                                $("#piezas").selectpicker("refresh");
+                            } else {
+                                $("#cantidad").html(html);
+                                $("#cantidad").selectpicker("refresh");
+                            }
+                        },
+                    });
+                }
+
+                $(document).on("change", "#piezas", function () {
+                    var op = $("#ops").val();
+                    var color = $("#colores").val();
+                    var espesor = $("#espesores").val();
+                    var pieza = $("#piezas").val();
+					var maquina = '{{ maquina }}';
+                    load_data("Cantidad", op, color, espesor, pieza, maquina);
+                });
+            });
+        </script>
+        <script>
+          function abrirNuevoTab(url) {
+            // Abrir nuevo tab
+            var win = window.open(url, '_blank');
+          }
+          $('#informeDiario').click(function(){
+            abrirNuevoTab('{{url_for('informeDiario', maquina=maquina)}}')
+          })
+        </script>
+
+        </body>
+</html>

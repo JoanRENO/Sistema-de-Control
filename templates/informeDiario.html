@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+      <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+
+  </head>
+
+  <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+  <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+  <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" style="font-size:xx-large;" title="Volver al menu principal">reno</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item" >
+                <a class="nav-link" href="#">Informe Diario</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+
+        <div class="container">
+            <div class="row">
+            <div class="col-md-12 order-md-1">
+                <div id="informeDiario">
+                    <h2 class="mb-3 text-center">INFORME DIARIO {{ maquina }}</h2>
+                    <h3> Total de Piezas: {{ total }}</h3>
+                        <div class="table-responsive-md">
+                            <table class="table table-active table-striped">
+                            {% for op in ops %}
+                            <thead>
+                              <tr class="table-secundary" style="background:gray;">
+                                <th scope="col">OP: {{ op['OP'] }}</th>
+                                <th scope="col">CANTIDAD: {{ op['CANTIDAD'] }}</th>
+                                <th scope="col"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            {% for pieza in piezas %}
+                              {% if op['OP'] == pieza['OP'] %}
+                              <tr>
+                                <td scope="row"></td>
+                                <td scope="row">{{ pieza['PIEZA_DESCRIPCION'] }}</td>
+                                <td scope="row">{{ pieza['CANTIDAD'] }}</td>
+                              </tr>
+                              {% endif %}
+                            {% endfor %}
+                            </tbody>
+                            {% endfor %}
+                            </table>
+                        </div>
+                    <hr>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        </body>
+
+</html>
