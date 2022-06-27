@@ -159,7 +159,11 @@ def lectura_masiva(maquina):
             espesor = request.form['espesores']
             pieza = request.form['piezas']
             if pieza == "":
-                cant = 0
+                cant = LecturaMasiva().calcular_cant(op, color, espesor, 1, maquina)
+                print(cant)
+                cant = cant[0]['CANTIDAD']
+                print("AAAAAA")
+                print(cant)
             else:
                 cant = request.form['cant']
             piezas = LecturaMasiva().verificar_lectura(op, color, espesor, pieza, maquina, cant)
@@ -170,7 +174,7 @@ def lectura_masiva(maquina):
                 return redirect(url_for('lectura', maquina=maquina))
             LecturaMasiva().updateMasivo(piezas, maquina)
             if pieza == '':
-                LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, None, 0)
+                LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, None, cant)
             else:
                 LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, pieza, cant)
             flash("Lectura masiva realizada con exito. \n OP: " + op + " | COLOR: " + color + " | ESPESOR: " + espesor

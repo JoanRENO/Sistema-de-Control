@@ -49,11 +49,15 @@ class Informe(DataBase):
         return lista
 
     def getInformeDiarioTabla(self, maquina):
+        self.cursor.execute("SELECT MAX(DATEADD(MINUTE, 30, fechaInicio)) FROM BaseTurnos WHERE GETDATE() > fechaInicio")
+        fechaInicio = self.cursor.fetchone()[0]
+        self.cursor.execute("SELECT MIN(fechaFin) FROM BaseTurnos WHERE GETDATE() < fechaFin")
+        fechaFin = self.cursor.fetchone()[0]
         self.cursor.execute(" SELECT COUNT(idPieza) as CANTIDAD, OP, PIEZA_DESCRIPCION FROM "
                             + DataBase.Tablas.basePiezas +
-                            " WHERE CONVERT(date, fechaLectura" + maquina + ") = CONVERT(date, GETDATE())"
-                            "GROUP BY OP, PIEZA_DESCRIPCION ORDER BY OP, PIEZA_DESCRIPCION"
-                            )
+                            " WHERE fechaLectura" + maquina + " > ? AND fechaLectura" + maquina + " < ? "
+                            "GROUP BY OP, PIEZA_DESCRIPCION ORDER BY OP, PIEZA_DESCRIPCION",
+                            fechaInicio, fechaFin)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -63,11 +67,14 @@ class Informe(DataBase):
         return OutputArray
 
     def getInformeDiarioOP(self, maquina):
+        self.cursor.execute("SELECT MAX(DATEADD(MINUTE, 30, fechaInicio)) FROM BaseTurnos WHERE GETDATE() > fechaInicio")
+        fechaInicio = self.cursor.fetchone()[0]
+        self.cursor.execute("SELECT MIN(fechaFin) FROM BaseTurnos WHERE GETDATE() < fechaFin")
+        fechaFin = self.cursor.fetchone()[0]
         self.cursor.execute(" SELECT COUNT(idPieza) as CANTIDAD, OP FROM "
                             + DataBase.Tablas.basePiezas +
-                            " WHERE CONVERT(date, fechaLectura" + maquina + ") = CONVERT(date, GETDATE())"
-                            "GROUP BY OP ORDER BY OP"
-                            )
+                            " WHERE fechaLectura" + maquina + " > ? AND fechaLectura" + maquina + " < ? " 
+                            "GROUP BY OP ORDER BY OP", fechaInicio, fechaFin)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -77,10 +84,15 @@ class Informe(DataBase):
         return OutputArray
 
     def getInformeDiarioTotal(self, maquina):
+        self.cursor.execute(
+            "SELECT MAX(DATEADD(MINUTE, 30, fechaInicio)) FROM BaseTurnos WHERE GETDATE() > fechaInicio")
+        fechaInicio = self.cursor.fetchone()[0]
+        self.cursor.execute("SELECT MIN(fechaFin) FROM BaseTurnos WHERE GETDATE() < fechaFin")
+        fechaFin = self.cursor.fetchone()[0]
         self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD FROM "
                             + DataBase.Tablas.basePiezas +
-                            " WHERE CONVERT(date, fechaLectura" + maquina + ") = CONVERT(date, GETDATE())"
-                            )
+                            " WHERE fechaLectura" + maquina + " > ? AND fechaLectura" + maquina + " < ? ",
+                            fechaInicio, fechaFin)
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
