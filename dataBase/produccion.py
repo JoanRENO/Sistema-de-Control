@@ -34,8 +34,8 @@ class Produccion(DataBase):
                 self.cursor.commit()
                 for legajo in legajos:
                     usuario = Produccion().getUsuario(legajo)
-                    self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos_usuarios + " (idTurno, idUsuario, nombreUsuario) "
-                                        "VALUES (?, ?, ?)", idTurno, legajo, usuario)
+                    self.cursor.execute("INSERT INTO " + DataBase.Tablas.turnos_usuarios + " (idTurno, idUsuario, nombreUsuario, maquina) "
+                                        "VALUES (?, ?, ?, ?)", idTurno, legajo, usuario, maquina)
                 self.cursor.commit()
         else:
             estado = "0"

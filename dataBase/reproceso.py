@@ -13,7 +13,7 @@ class Reproceso(DataBase):
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' ORDER BY OP")
         else:
             self.cursor.execute("SELECT DISTINCT OP FROM " + DataBase.Tablas.basePiezas +
-                                " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND lectura" + maquina + " = 0 ORDER BY OP")
+                                " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND lectura" + maquina + " = 1 ORDER BY OP")
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -29,7 +29,7 @@ class Reproceso(DataBase):
                                 " ORDER BY PIEZA_NOMBRECOLOR", op)
         else:
             self.cursor.execute("SELECT DISTINCT PIEZA_NOMBRECOLOR FROM " + DataBase.Tablas.basePiezas +
-                                " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND lectura"+ maquina +" = 0 "
+                                " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND lectura"+ maquina +" = 1 "
                                 "ORDER BY PIEZA_NOMBRECOLOR", op)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -48,7 +48,7 @@ class Reproceso(DataBase):
         else:
             self.cursor.execute("SELECT DISTINCT PIEZA_PROFUNDO FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ?"
-                                " AND PIEZA_NOMBRECOLOR = ? AND lectura" + maquina + " = 0 "
+                                " AND PIEZA_NOMBRECOLOR = ? AND lectura" + maquina + " = 1 "
                                 "ORDER BY PIEZA_PROFUNDO", op, color)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -67,7 +67,7 @@ class Reproceso(DataBase):
         else:
             self.cursor.execute("SELECT DISTINCT PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
-                                " AND PIEZA_PROFUNDO = ? AND lectura" + maquina + " = 0 "
+                                " AND PIEZA_PROFUNDO = ? AND lectura" + maquina + " = 1 "
                                 "ORDER BY PIEZA_DESCRIPCION", op, color, espesor)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -86,7 +86,7 @@ class Reproceso(DataBase):
         else:
             self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD, RUTA_ASIGNADA, PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
-                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND lectura" + maquina + " = 0 "
+                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND lectura" + maquina + " = 1 "
                                 "GROUP BY RUTA_ASIGNADA, PIEZA_DESCRIPCION", op, color, espesor, pieza)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -107,7 +107,7 @@ class Reproceso(DataBase):
         else:
             self.cursor.execute("SELECT TOP " + cantidad + " idPieza FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maq_detecto + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
-                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND lectura" + maq_detecto + " = 0 "
+                                " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND lectura" + maq_detecto + " = 1 "
                                 "AND RUTA_ASIGNADA LIKE '%" + maq_select + "%'", op, color, espesor, pieza)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -321,6 +321,14 @@ class Reproceso(DataBase):
         a = self.cursor.fetchone()
         if a is not None:
             aux = a[0]
+            if aux in ['LP', 'LM', 'LP.P', 'LC', 'LP.C', 'ARMADO/EMBALADO']:
+                self.cursor.execute("SELECT ruta_asignada FROM " + DataBase.Tablas.logReproceso + " WHERE idPieza = ?",
+                                    idPieza)
+                ruta = self.cursor.fetchone()[0]
+                maquinas = re.split("-", ruta)
+                print(maquinas)
+                aux = maquinas[len(maquinas)-2]
+                print(aux)
         else:
             aux = None
         print(aux)

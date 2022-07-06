@@ -239,6 +239,7 @@
                             <option value="Corte de energia">Corte de energia</option>
                             <option value="Descanso">Descanso</option>
                             <option value="Esperar temperatura">Esperar temperatura</option>
+                            <option value="Falta de Insumo">Falta de Insumo</option>
                             <option value="Informacion no transmitida">Informacion no transmitida</option>
                             <option value="Maquina parada por mantenimiento">Maquina parada por mantenimiento</option>
                             <option value="Movimiento de materiales">Movimiento de materiales</option>
@@ -472,8 +473,7 @@
                             var html = "";
 
                             html += '<label for="cant">CANTIDAD DE PIEZAS REALIZADAS: </label>' +
-                            '<input class="form-control" type="number" id="cant" name="cant" min="1" max="' + data[0].CANTIDAD + '" placeholder="CANT EN EL SISTEMA: ' + data[0].CANTIDAD + '"><br>';
-
+                            '<input class="form-control" type="number" id="cant" name="cant" min="1" max="' + data[0].CANTIDAD + '" placeholder="CANT EN EL SISTEMA: ' + data[0].CANTIDAD + '" required><br>';
                             if (type == "Pieza") {
                                 $("#piezas").html(html);
                                 $("#piezas").selectpicker("refresh");
