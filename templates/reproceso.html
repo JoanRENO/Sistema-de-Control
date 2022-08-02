@@ -113,7 +113,7 @@
                 <form action={{url_for('generar_reproceso', tipo="OP")}} method="POST">
                     <div class="form-group">
                     <select name="maquina1_1" data-live-search="true" id="maquina1_1" class="form-control" required>
-                            {% set maquinas = ["GBN1", "SLC", "STF", "MRT1", "MRT2", "MRT3", "MRT4", "IDM",
+                            {% set maquinas = ["GBN1", "SLC", "NST", "STF", "MRT1", "MRT2", "MRT3", "MRT4", "IDM",
                             "RVR", "FTAL1", "KBT1", "KBT2", "VTP1", "LEA", "PRS", "ALU", "LM", "LP", "LC"] %}
                             <option selected>Maquina</option>
                             {% for maquinaRP in maquinas %}

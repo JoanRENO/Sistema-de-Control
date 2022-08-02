@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+     <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+     <title>Sistema de control</title>
+  </head>
+
+    <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+    <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+
+    <script src="{{url_for('static', filename='/jquery/3.5.1/jquery.js')}}"></script>
+    <script src="{{url_for('static', filename='/jquery/3.5.1/dataTables.min.js')}}"></script>
+    <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='/jquery/3.5.1/dataTables.min.css')}}">
+    <script src="{{url_for('static', filename='/jquery/3.5.1/bootstrap4.min.js')}}"></script>
+
+    <body class="bg-light">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/" data-bs-toggle="tooltip" style="font-size:xx-large;" title="Volver al menu principal">reno</a>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('control', maquina=maquina)}}>Control</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('lectura', maquina=maquina)}}>Lectura Masiva</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('informe', maquina=maquina)}}>Informe</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">Planificacion</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+    <br>
+      <div class="container">
+            <div class="row">
+            <div class="col-xs-12">
+            <div id="planificacion">
+                <div class="container">
+                <h2 class="mb-3 text-center">PLANIFICACION {{ maquina }}</h2>
+                <br>
+                {% with messages = get_flashed_messages()  %}
+                    {% if messages %}
+                    {% for message in messages %}
+                      <div class="alert alert-warning" role="alert">
+                          <strong>{{ message }}</strong>
+                          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                          </button>
+                      </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+            </div>
+            </div>
+      </div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    INFORME
+                                </div>
+
+                                <div class="panel-body">
+                                    <table id="informe_planificacion" class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                              <th></th>
+                                              <th>Prog</th>
+                                              <th>Bloq</th>
+                                              <th>Maquina</th>
+                                              <th>CantProg</th>
+                                              <th>CantProc</th>
+                                              <th>CantDeuda</th>
+                                              <th>%Cumpl</th>
+                                              <th>Repro</th>
+                                              <th>InicioPlanificado</th>
+                                              <th>InicioReal</th>
+                                              <th>FinalTeorico</th>
+                                              <th>FinalReal</th>
+                                              <th>STD_Dias</th>
+                                              <th>DifInicio</th>
+                                              <th>DifFin</th>
+                                            </tr>
+                                        </thead>
+                                        {% for x in informe %}
+                                        <tbody>
+                                            {% set aux = loop.index %}
+                                            <tr>
+                                               <td><a class="btn btn-primary" data-toggle="collapse" href="#collapseExample{{ aux }}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                                    +
+                                                  </a></td>
+                                               <td>{{ x['Programa'] }}</td>
+                                               <td>{{ x['bloque'] }}</td>
+                                               <td>{{ x['Maquina'] }}</td>
+                                               <td>{{ x['CantProgramado'] }}</td>
+                                               <td>{{ x['CantidadProcesada'] }}</td>
+                                               <td>{{ x['CantDeuda'] }}</td>
+                                               <td>{{ ('%0.2f' % x['PorcCump']|float) }}</td>
+                                               <td>{{ x['Reproceso'] }}</td>
+                                                {% if x['InicioPlanificado'] is none or x['InicioReal'] is none or x['FinalTeorico'] is none or x['FinalReal'] is none %}
+                                                <td>{{ x['InicioPlanificado'] }}</td>
+                                               <td>{{ x['InicioReal'] }}</td>
+                                               <td>{{ x['FinalTeorico'] }}</td>
+                                               <td>{{ x['FinalReal'] }}</td>
+                                                {% else %}
+                                               <td>{{ x['InicioPlanificado'].strftime('%Y-%m-%d') }}</td>
+                                               <td>{{ x['InicioReal'].strftime('%Y-%m-%d') }}</td>
+                                               <td>{{ x['FinalTeorico'].strftime('%Y-%m-%d') }}</td>
+                                               <td>{{ x['FinalReal'].strftime('%Y-%m-%d') }}</td>
+                                                {% endif %}
+                                               <td>{{ ('%0.2f' % x['TiempoSTD_Dias']|float) }}</td>
+                                               <td>{{ x['DifInicio'] }}</td>
+                                               <td>{{ x['DifFin'] }}</td>
+                                            </tr>
+
+                                            <tr>
+                                                <td colspan="12" class="hiddenRow">
+                                                  <div class="collapse" id="collapseExample{{ aux }}">
+                                                  <table class="table table-striped">
+                                                    <thead>
+                                                        <tr class="primary">
+                                                            <th>OP</th>
+                                                            <th>CantProg</th>
+                                                            <th>CantProc</th>
+                                                            <th>Deuda</th>
+                                                            <th>Repro</th>
+                                                            <th>%Cumpl</th>
+                                                            <th>Nota</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+
+
+                                                    <tbody>
+                                                        {% for op in ops %}
+                                                            {% if op['Programa'] == x['Programa'] and op['bloque'] == x['bloque'] %}
+                                                        <tr data-toggle="collapse"  class="accordion-toggle info" data-target="#demo{{ aux }}">
+                                                            <td>{{ op['OP'] }}</td>
+                                                            <td>{{ op['CantProgramado'] }}</td>
+                                                            <td>{{ op['CantidadProcesada'] }}</td>
+                                                            <td>{{ op['Deuda'] }}</td>
+                                                            <td>{{ op['Reproceso']}}</td>
+                                                            <td>{{ op['PorcCumpl'] }}</td>
+                                                            {% if op['Nota'] is none %}
+                                                            <td>
+                                                                <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#agregarTarea{{ maquina + op['OP'] }}">
+                                                                  Agregar Nota
+                                                                </button>
+                                                            </td>
+                                                            <!-- Modal Agregar Tarea -->
+                                                            <div class="modal fade" id="agregarTarea{{ maquina + op['OP'] }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                              <div class="modal-dialog" role="document">
+                                                                <div class="modal-content">
+                                                                  <div class="modal-body">
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                      <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                      <form action="{{ url_for('agregar_nota', maquina=maquina,op=op['OP'], pieza='aa') }}" method="post">
+                                                                          <div>
+                                                                              <label for="obs2" class="form-label">AGREGAR NOTA:</label>
+                                                                              <textarea class="form-control" name="obs" id="obs2" required></textarea>
+                                                                          </div>
+                                                                          <br>
+                                                                          <div>
+                                                                          <button type="submit" class="btn btn-primary">Aceptar</button>
+                                                                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                                          </div>
+                                                                      </form>
+                                                                  </div>
+                                                                </div>
+                                                              </div>
+                                                            </div>
+                                                            {% else %}
+                                                            <td>
+                                                                {{ op['Nota'] }}
+                                                                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modificarTarea{{ maquina + op['OP'] }}">
+                                                                    <img src="{{url_for('static', filename='open-iconic-master/svg/pencil.svg')}}">
+                                                                </button>
+                                                            </td>
+                                                            <!-- Modal Modificar Tarea -->
+                                                            <div class="modal fade" id="modificarTarea{{ maquina + op['OP'] }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                              <div class="modal-dialog" role="document">
+                                                                <div class="modal-content">
+                                                                  <div class="modal-body">
+                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                      <span aria-hidden="true">&times;</span>
+                                                                    </button>
+                                                                      <form action="{{ url_for('modificar_nota', maquina=maquina,op=op['OP'], pieza='aa') }}" method="post">
+                                                                          <div>
+                                                                              <label for="obs2" class="form-label">MODIFICAR NOTA:</label>
+                                                                              <textarea class="form-control" name="obs" id="obs2" required></textarea>
+                                                                          </div>
+                                                                          <br>
+                                                                          <div>
+                                                                          <button type="submit" class="btn btn-primary">Aceptar</button>
+                                                                          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                                          </div>
+                                                                      </form>
+                                                                  </div>
+                                                                </div>
+                                                              </div>
+                                                            </div>
+                                                            {% endif %}
+                                                            <td>
+                                                              <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample2{{aux}}{{loop.index}}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                                                +
+                                                              </a>
+                                                            </td>
+                                                        </tr>
+                                                        <!-- -->
+                                                        <tr>
+                                                            <td colspan="12" class="hiddenRow">
+                                                              <div class="collapse" id="collapseExample2{{aux}}{{loop.index}}">
+                                                              <table class="display" id="table{{aux}}{{loop.index}}">
+                                                                <script>
+                                                                $(document).ready(function () {
+                                                                    $('#table{{aux}}{{loop.index}}').DataTable();
+                                                                });
+                                                                </script>
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th>MATERIAL</th>
+                                                                        <th>ESPESOR</th>
+                                                                        <th>COLOR</th>
+                                                                        <th>CantProg</th>
+                                                                        <th>CantProc</th>
+                                                                        <th>Deuda</th>
+                                                                        <th>Repro</th>
+                                                                        <th>Nota</th>
+                                                                        <th></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                  <tbody>
+                                                                    {% for color in colores %}
+                                                                      {% if color['Programa'] == op['Programa'] and op['bloque'] == color['bloque'] and color['OP'] == op['OP'] %}
+
+
+                                                                                <tr>
+                                                                                    <td> {{color['PIEZA_NOMBREMATERIAL']}}</td>
+                                                                                    <td> {{color['PIEZA_PROFUNDO']}}</td>
+                                                                                    <td> {{color['PIEZA_NOMBRECOLOR']}}</td>
+                                                                                    <td>{{ color['CantProgramado'] }}</td>
+                                                                                    <td>{{ color['CantidadProcesada']}}</td>
+                                                                                    <td>{{ color['Deuda']}}</td>
+                                                                                    <td>{{ color['Reproceso']}}</td>
+                                                                                    {% if color['Nota'] is none %}
+                                                                                    <td>
+                                                                                        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#agregarTarea{{ maquina + color['OP'] + (loop.index|string) }}">
+                                                                                          Agregar Nota
+                                                                                        </button>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                       {% if color['PorcCumpl'] == '100%'%}
+                                                                                      <button class="btn btn-primary" disabled>+</button>
+                                                                                       {% else %}
+                                                                                      <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample3{{color['OP']}}{{loop.index}}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                                                                        +
+                                                                                      </a>
+                                                                                        {% endif %}
+                                                                                    </td>
+                                                                                    <!-- Modal Agregar Tarea -->
+                                                                                    <div class="modal fade" id="agregarTarea{{ maquina + color['OP'] + (loop.index|string) }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                                                      <div class="modal-dialog" role="document">
+                                                                                        <div class="modal-content">
+                                                                                          <div class="modal-body">
+                                                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                                              <span aria-hidden="true">&times;</span>
+                                                                                            </button>
+                                                                                              <form action="{{ url_for('agregar_nota', maquina=maquina,op=color['OP'], pieza=color['PIEZA_NOMBREMATERIAL'] + ' ' + (color['PIEZA_PROFUNDO']|string) + ' ' + color['PIEZA_NOMBRECOLOR']) }}" method="post">
+                                                                                                  <div>
+                                                                                                      <label for="obs2" class="form-label">AGREGAR NOTA:</label>
+                                                                                                      <textarea class="form-control" name="obs" id="obs2" required></textarea>
+                                                                                                  </div>
+                                                                                                  <br>
+                                                                                                  <div>
+                                                                                                  <button type="submit" class="btn btn-primary">Aceptar</button>
+                                                                                                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                                                                  </div>
+                                                                                              </form>
+                                                                                          </div>
+                                                                                        </div>
+                                                                                      </div>
+                                                                                    </div>
+                                                                                    {% else %}
+                                                                                    <td>
+                                                                                        {{ color['Nota'] }}
+                                                                                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#modificarTarea{{ maquina + color['OP'] + (loop.index|string) }}">
+                                                                                            <img src="{{url_for('static', filename='open-iconic-master/svg/pencil.svg')}}">
+                                                                                        </button>
+                                                                                    </td>
+                                                                                    <td>
+                                                                                      {% if color['PorcCumpl'] == '100%'%}
+                                                                                      <button class="btn btn-primary" disabled>+</button>
+                                                                                       {% else %}
+                                                                                      <a class="btn btn-primary" data-toggle="collapse" href="#collapseExample3{{color['OP']}}{{loop.index}}" role="button" aria-expanded="false" aria-controls="collapseExample">
+                                                                                        +
+                                                                                      </a>
+                                                                                        {% endif %}
+                                                                                    </td>
+                                                                                    <!-- Modal Modificar Tarea -->
+                                                                                    <div class="modal fade" id="modificarTarea{{ maquina + color['OP'] + (loop.index|string) }}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                                                      <div class="modal-dialog" role="document">
+                                                                                        <div class="modal-content">
+                                                                                          <div class="modal-body">
+                                                                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                                                              <span aria-hidden="true">&times;</span>
+                                                                                            </button>
+                                                                                              <form action="{{ url_for('modificar_nota', maquina=maquina,op=color['OP'], pieza=color['PIEZA_NOMBREMATERIAL'] + ' ' + (color['PIEZA_PROFUNDO']|string) + ' ' + color['PIEZA_NOMBRECOLOR']) }}" method="post">
+                                                                                                  <div>
+                                                                                                      <label for="obs2" class="form-label">MODIFICAR NOTA:</label>
+                                                                                                      <textarea class="form-control" name="obs" id="obs2" required></textarea>
+                                                                                                  </div>
+                                                                                                  <br>
+                                                                                                  <div>
+                                                                                                  <button type="submit" class="btn btn-primary">Aceptar</button>
+                                                                                                  <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                                                                                                  </div>
+                                                                                              </form>
+                                                                                          </div>
+                                                                                        </div>
+                                                                                      </div>
+                                                                                    </div>
+                                                                                    {% endif %}
+                                                                                </tr>
+                                                                                {% if color['PorcCumpl'] != '100%'%}
+                                                                                <tr>
+                                                                                    <td colspan="12" class="hiddenRow">
+                                                                                        <div class="collapse" id="collapseExample3{{color['OP']}}{{loop.index}}">
+                                                                                            <table class="table-info">
+                                                                                                <thead>
+                                                                                                    <tr>
+                                                                                                        <th>PIEZA</th>
+                                                                                                        <th>CantProg</th>
+                                                                                                        <th>CantProc</th>
+                                                                                                        <th>Deuda</th>
+                                                                                                        <th>Repro</th>
+                                                                                                    </tr>
+                                                                                                </thead>
+                                                                                                <tbody>
+                                                                                                    {% for pieza in piezas %}
+                                                                                                    {% if pieza['OP'] == color['OP'] and pieza['PIEZA_NOMBREMATERIAL'] == color['PIEZA_NOMBREMATERIAL'] and pieza['PIEZA_PROFUNDO'] == color['PIEZA_PROFUNDO'] and pieza['PIEZA_NOMBRECOLOR'] == color['PIEZA_NOMBRECOLOR'] %}
+                                                                                                    <tr>
+                                                                                                        <th>{{pieza['PIEZA_DESCRIPCION']}}</th>
+                                                                                                        <th>{{pieza['CantProgramado']}}</th>
+                                                                                                        <th>{{pieza['CantidadProcesada']}}</th>
+                                                                                                        <th>{{pieza['Deuda']}}</th>
+                                                                                                        <th>{{pieza['Reproceso']}}</th>
+                                                                                                    </tr>
+                                                                                                    {% endif %}
+                                                                                                    {% endfor %}
+                                                                                                </tbody>
+                                                                                            </table>
+                                                                                        </div>
+                                                                                    </td>
+                                                                                </tr>
+                                                                                {% endif %}
+                                                                      {% endif %}
+                                                                    {% endfor %}
+                                                                    </tbody>
+                                                              </table>
+                                                              </div>
+                                                            </td>
+                                                        </tr>
+
+                                                           {% endif %}
+                                                        {% endfor %}
+                                                    </tbody>
+                                                  </table>
+                                                  </div>
+                                                </td>
+                                            </tr>
+                                               {% endfor %}
+                                        </tbody>
+                                    </table>
+            </div>
+
+          </div>
+                        </div>
+
+
+
+                    </div>
+                </div>
+
+
+            </div>
+            </div>
+            </div>
+        </div>
+      </div>
+
+
+        </body>
+</html>

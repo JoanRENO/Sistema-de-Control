@@ -20,15 +20,12 @@
             <li class="nav-item" onclick="myFunction(1)">
                 <a class="nav-link" href="#">Alta</a>
             </li>
-            <!--<li class="nav-item" onclick="myFunction(2)">
-                <a class="nav-link" href="#">Etiqueta</a>
-            </li> -->
             <li class="nav-item" onclick="myFunction(2)">
                 <a class="nav-link" href="#">Baja</a>
             </li>
-            <li class="nav-item" onclick="myFunction(3)">
+          <!--  <li class="nav-item" onclick="myFunction(3)">
                 <a class="nav-link" href="#">Optiplanning</a>
-            </li>
+            </li> -->
           </ul>
         </div>
       </nav>
@@ -126,27 +123,56 @@
 
             <div id="informe" style={{ display3 }}>
                 <div class="container">
+                <div style={{ display3 }}>
+                      {% with messages = get_flashed_messages(with_categories=true) %}
+                          {% if messages %}
+                            {% for category, message in messages %}
+                                {% if category == 'message' %}
+                                  <div class="alert alert-success" role="alert">
+                                {% else %}
+                                  <div class="alert alert-{{ category }}" role="alert">
+                                {% endif %}
+                                  <strong>{{ message }}</strong>
+                                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                  <span aria-hidden="true">&times;</span>
+                                  </button>
+                                </div>
+                            {% endfor %}
+                          {% endif %}
+                      {% endwith %}
+                    </div>
+                    <br>
+                </div>
                 <h2 class="mb-3 text-center">Gestion de Restos</h2>
                     <div>
                         <h3 id="opt" style="background-color:{{backgroundcolor}};" >Optiplanning</h3>
-                        <form action={{url_for('activarOP')}} method="post">
-                        <button id="activar" class="btn btn-primary" {{buttons1}}>Acticar</button>
-                        </form>
-                        <form action={{url_for('desactivarOP')}} method="post">
-                        <button id="desactivar" class="btn btn-primary" {{buttons2}}>Desactivar</button>
-                        </form>
+                        <div class="row">
+                            <form action={{url_for('activarOP')}} method="post">
+                            <button id="activar" class="btn btn-primary" {{buttons1}}>Acticar</button>
+                            </form>
+                            <form action={{url_for('desactivarOP')}} method="post">
+                            <button id="desactivar" class="btn btn-primary" {{buttons2}}>Desactivar</button>
+                            </form>
+                        </div>
                     </div>
                     <br>
-                    <form>
+                    <form action={{url_for('baja_resto_id')}} method="post">
                             <div class="form-group">
-                            <label for="formFile" class="form-label">File input</label>
-                            <input class="form-control-file" type="file" id="formFile">
+                                <label for="baja_id">Seleccione ID: </label>
+                                <select name="baja_id" data-live-search="true" id="baja_id" class="form-control selectpicker" required>
+                                    <option selected value=""></option>
+                                    {% for id in idBAJA %}
+                                    <option value="{{ id['Descripcion'] }}">{{ id['idResto'] }}</option>
+                                    {% endfor %}
+                                </select>
+                                <br><br>
+                                <label id="lbl"></label>
+                                <input id="baja_id_input" name="baja_id_input" style="display:None;">
+                                <br>
+                                <button class="btn btn-secondary">Dar de Baja</button>
                             </div>
+
                     </form>
-                    <br><br><br>
-                    <div>
-                        <a href="/">Descargar planilla de optiplanning</a>
-                    </div>
 
                 </div>
             </div>
@@ -215,6 +241,15 @@
             load_data("COLOR", color);
         });
     });
+    </script>
+    <script>
+         $(document).ready(function () {
+                $("#baja_id").selectpicker();
+                $(document).on("change", "#baja_id", function () {
+                    $('#lbl').text($("#baja_id option:selected").val());
+                    $('#baja_id_input').val($("#baja_id option:selected").text());
+                });
+         });
     </script>
     </body>
 

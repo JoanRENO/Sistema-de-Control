@@ -21,7 +21,7 @@ class Resto(DataBase):
         alto = medidas[0]
         ancho = medidas[1]
         self.cursor.execute("SELECT TOP 1 idResto FROM " + DataBase.Tablas.restos +
-                            " WHERE color = ? AND alto = ? AND ancho = ? ", color, alto, ancho)
+                            " WHERE color = ? AND alto = ? AND ancho = ? AND estado = 'NO ASIGNADO'", color, alto, ancho)
         idResto = self.cursor.fetchall()[0]
         self.cursor.execute("UPDATE " + DataBase.Tablas.restos +
                                 " SET [estado] = 'ASIGNADO' "
@@ -60,6 +60,24 @@ class Resto(DataBase):
             OutputArray.append(dict(zip(columnNames, record)))
         self.close()
         return OutputArray
+
+    def listaIdBAJA(self):
+        self.cursor.execute("SELECT idResto, CONCAT(color, '', alto, 'X',ancho) as Descripcion FROM "
+                            + DataBase.Tablas.restos + " WHERE estado = 'NO ASIGNADO'")
+        records = self.cursor.fetchall()
+        OutputArray = []
+        columnNames = [column[0] for column in self.cursor.description]
+        for record in records:
+            OutputArray.append(dict(zip(columnNames, record)))
+        self.close()
+        return OutputArray
+
+    def bajaRestoId(self, idResto):
+        self.cursor.execute("UPDATE " + DataBase.Tablas.restos +
+                                " SET [estado] = 'ASIGNADO' "
+                                "WHERE idResto = ?", idResto)
+        self.cursor.commit()
+        self.close()
 
     def verificarOP(self):
         self.cursor.execute("SELECT estado FROM " + DataBase.Tablas.restos + " WHERE idResto = 1")

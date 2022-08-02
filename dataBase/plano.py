@@ -18,4 +18,7 @@ class Plano(DataBase):
                 OutputArray.append({'Acuerdo/Tipo de pedido': 'Multifamiliar', 'Cantidad': 0, 'Objetivo': '100'})
             else:
                 OutputArray.append({'Acuerdo/Tipo de pedido': 'Unifamiliar', 'Cantidad': 0, 'Objetivo': '150'})
+        elif len(OutputArray) == 0:
+            OutputArray.append({'Acuerdo/Tipo de pedido': 'Multifamiliar', 'Cantidad': 0, 'Objetivo': '100'})
+            OutputArray.append({'Acuerdo/Tipo de pedido': 'Unifamiliar', 'Cantidad': 0, 'Objetivo': '150'})
         return OutputArray

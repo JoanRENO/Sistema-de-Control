@@ -16,6 +16,7 @@ from dataBase.reproceso import Reproceso
 from dataBase.pallet import Pallet
 from dataBase.restos import Resto
 from dataBase.produccion import Produccion
+from dataBase.planificacion import Planificacion
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './'
@@ -685,9 +686,9 @@ def generar_reproceso(tipo):
                                             info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                             info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
                                             info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto, "")
+                Reproceso().imprimirEtiqueta()
             else:
                 return redirect(url_for('reproceso', display="41"))
-            Reproceso().imprimirEtiqueta()
             return redirect(url_for('reproceso', display="1"))
         if tipo == "OP":
             print(tipo)
@@ -707,6 +708,8 @@ def generar_reproceso(tipo):
                 for x in ids_op:
                     info = Reproceso().info_final(x['idPieza'])
                     Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], info['idPieza'], maq_detecto, maq_select)
+                    Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
+                                              info['RUTA_ASIGNADA'], info['OP'], causa)
                     Reproceso().generar_barcode(info['idPieza'], info['PIEZA_DESCRIPCION'], info['SO'],
                                                 info['PRODUCTO_TERMINADO'], info['OP'], info['RUTA_ASIGNADA'],
                                                 info['PIEZA_NOMBREMODOSUSTENTACION'],
@@ -714,8 +717,7 @@ def generar_reproceso(tipo):
                                                 info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
                                                 info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto, lado)
                     Reproceso().imprimirEtiqueta()
-                    Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
-                                              info['RUTA_ASIGNADA'], info['OP'], causa)
+
             else:
                 return redirect(url_for('reproceso', display="42"))
             return redirect(url_for('reproceso', display="2"))
@@ -827,7 +829,7 @@ def gestion_restos(ventana):
         display3 = ""
     return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3,
                            coloresBAJA=Resto().listaColoresBAJA(), coloresALTA=Resto().listaColoresALTA(),
-                           buttons1="",  buttons2="disabled", backgroundcolor="red")
+                           idBAJA=Resto().listaIdBAJA(), buttons1="",  buttons2="disabled", backgroundcolor="red")
 
 
 @app.route('/alta_resto', methods=["POST"])
@@ -872,6 +874,15 @@ def baja_resto():
         flash('Error: ingrese todas las medidas', 'danger')
     return redirect(url_for('gestion_restos', ventana='2'))
 
+@app.route('/baja_resto_id', methods=["POST"])
+def baja_resto_id():
+    if request.method == 'POST':
+        idResto = request.form['baja_id_input']
+        print(idResto)
+        Resto().bajaRestoId(idResto)
+        flash('Baja realizado con exito. ID: ' + str(idResto), 'success')
+    return redirect(url_for('gestion_restos', ventana='3'))
+
 
 @app.route('/activarOP', methods=["POST"])
 def activarOP():
@@ -885,9 +896,44 @@ def desactivarOP():
     return redirect(url_for('gestion_restos', ventana='3'))
 
 
+# PLANIFICACION
+@app.route('/planificacion/<string:maquina>')
+def planificacion(maquina):
+    informe = Planificacion().reportePlanificacion(maquina)
+    ops = Planificacion().reportePlaMaqOPs(maquina)
+    color = Planificacion().reportePlaMaqEsp(maquina)
+    piezas = Planificacion().reportePlaMaqPiezas(maquina)
+    return render_template('planificacion.html', maquina=maquina, informe=informe, ops=ops, colores=color, piezas=piezas)
 
-#serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!
+
+@app.route('/agregar_nota/<string:maquina>/<string:op>/<string:pieza>', methods=["POST"])
+def agregar_nota(maquina, op, pieza):
+    print(maquina)
+    print(op)
+    print(pieza)
+    obs = request.form['obs']
+    print(obs)
+    if pieza == "aa":
+        pieza = None
+    Planificacion().insertarNota(maquina, op, pieza, obs)
+    return redirect(url_for('planificacion', maquina=maquina))
+
+
+@app.route('/modificar_nota/<string:maquina>/<string:op>/<string:pieza>', methods=["POST"])
+def modificar_nota(maquina, op, pieza):
+    print(maquina)
+    print(op)
+    print(pieza)
+    obs = request.form['obs']
+    print(obs)
+    if pieza == "aa":
+        pieza = None
+    Planificacion().updateNota(maquina, op, pieza, obs)
+    return redirect(url_for('planificacion', maquina=maquina))
+
+
+serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!
 
 # starting the app
-if __name__ == "__main__":
-    app.run(port=3000, debug=True)
+#if __name__ == "__main__":
+#    app.run(port=3000, debug=True)

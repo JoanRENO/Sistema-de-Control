@@ -30,6 +30,9 @@
             <li class="nav-item">
                 <a class="nav-link" href="#">Informe</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" href={{url_for('planificacion', maquina=maquina)}}>Planificacion</a>
+            </li>
           </ul>
         </div>
       </nav>
@@ -91,7 +94,7 @@
                         <td>{{pieza.4}}</td>
                     </tr>
                     {% for id in ids_noleidas %}
-                    {% if pieza.0 == id.1 and pieza.1 == id.2 %}
+                    {% if pieza.0 == id.1 and pieza.1 == id.2 and pieza.2 == id.3 and pieza.3 == id.4 %}
                     <tr>
                         <td> ID </td>
                         <td>{{ id.0 }}</td>
