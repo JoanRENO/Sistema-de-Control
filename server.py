@@ -808,13 +808,11 @@ def getTablaPallet():
         data = Pallet().getTablaPallet(idPallet)
     return jsonify(data)
 
+
 #GESTION DE RESTOS
 @app.route('/gestion_restos/<string:ventana>', methods=["POST", "GET"])
 def gestion_restos(ventana):
-    if Resto().verificarOP():
-        flash('Optiplanning Activadado, funciones de Alta y Baja desahabilitadas')
-        return render_template("gestionRestos.html", display1="display:None;", display2="display:None;", display3="",
-                               buttons1="disabled",  buttons2="", backgroundcolor="green")
+    aux = Resto().verificarOP()
     if ventana == "1":
         display1 = ""
         display2 = "display:None;"
@@ -827,9 +825,18 @@ def gestion_restos(ventana):
         display1 = "display:None;"
         display2 = "display:None;"
         display3 = ""
-    return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3,
-                           coloresBAJA=Resto().listaColoresBAJA(), coloresALTA=Resto().listaColoresALTA(),
-                           idBAJA=Resto().listaIdBAJA(), buttons1="",  buttons2="disabled", backgroundcolor="red")
+    if aux is False:
+        return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3,
+                               coloresBAJA=Resto().listaColoresBAJA(), coloresALTA=Resto().listaColoresALTA(),
+                               idBAJA=Resto().listaIdBAJA(), buttons1="", buttons2="disabled", backgroundcolor="red")
+    else:
+        aux2 = Resto().obtenerColores(aux)
+        print(aux2)
+        flash('Optiplanning Activadado, los siguientes colores no se pueden dar de baja: \n' + str(aux2))
+        return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3,
+                               coloresBAJA=Resto().listaColoresBAJA_OP(aux2), coloresALTA=Resto().listaColoresALTA(),
+                               buttons1="disabled",  buttons2="", backgroundcolor="green", idBAJA=Resto().listaIdBAJA())
+
 
 
 @app.route('/alta_resto', methods=["POST"])
@@ -886,13 +893,15 @@ def baja_resto_id():
 
 @app.route('/activarOP', methods=["POST"])
 def activarOP():
-    Resto().activarOP('ACTIVADO')
+    colores = request.form.getlist('selecciones')
+    print(colores)
+    Resto().activarOP('ACTIVADO', colores)
     return redirect(url_for('gestion_restos', ventana='3'))
 
 
 @app.route('/desactivarOP', methods=["POST"])
 def desactivarOP():
-    Resto().activarOP('DESACTIVADO')
+    Resto().desactivarOP('DESACTIVADO')
     return redirect(url_for('gestion_restos', ventana='3'))
 
 

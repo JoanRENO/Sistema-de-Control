@@ -40,7 +40,7 @@ class Resto(DataBase):
         return OutputArray
 
     def listaColoresALTA(self):
-        self.cursor.execute("SELECT DISTINCT CONCAT(CONVERT(varchar, cod_selco), ' ' , color) AS color FROM "
+        self.cursor.execute("SELECT DISTINCT CONCAT(CONVERT(varchar, cod_selco), ' ' , color) AS color, cod_selco FROM "
                             + DataBase.Tablas.colores_selco)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -84,11 +84,54 @@ class Resto(DataBase):
         a = self.cursor.fetchone()
         print(a)
         if a[0] == 'ACTIVADO':
-            return True
+            self.cursor.execute("SELECT color FROM " + DataBase.Tablas.restos + " WHERE idResto = 1")
+            a = self.cursor.fetchone()
+            return a[0]
         else:
             return False
 
-    def activarOP(self, estado):
-        self.cursor.execute("UPDATE " + DataBase.Tablas.restos + " SET estado = ? WHERE idResto = 1", estado)
+    def activarOP(self, estado, colores):
+        aux = ''
+        for color in colores:
+            aux += color + ','
+        aux = aux[:-1]
+        print(aux)
+        self.cursor.execute("UPDATE " + DataBase.Tablas.restos + " SET estado = ?, color = ? WHERE idResto = 1", estado, aux)
+        self.cursor.commit()
+        self.close()
+
+    def obtenerColores(self, lista_colores):
+        self.cursor.execute("SELECT CONCAT(CONVERT(varchar, cod_selco), ' ' , color) AS color FROM " + DataBase.Tablas.colores_selco + " WHERE"
+                            " cod_selco IN (" + lista_colores + ")")
+        records = self.cursor.fetchall()
+        OutputArray = []
+        columnNames = [column[0] for column in self.cursor.description]
+        for record in records:
+            OutputArray.append(dict(zip(columnNames, record)))
+        self.close()
+        lista = []
+        for a in OutputArray:
+            lista.append(a['color'])
+        return lista
+
+    def listaColoresBAJA_OP(self, lista_colores):
+        aux = "'"
+        for co in lista_colores:
+            aux += co + "','"
+        aux = aux[:-1]
+        aux = aux[:-1]
+        print(aux)
+        self.cursor.execute("SELECT DISTINCT color FROM " + DataBase.Tablas.restos + " WHERE estado = 'NO ASIGNADO'"
+                            " AND color NOT IN (" + aux + ")")
+        records = self.cursor.fetchall()
+        OutputArray = []
+        columnNames = [column[0] for column in self.cursor.description]
+        for record in records:
+            OutputArray.append(dict(zip(columnNames, record)))
+        self.close()
+        return OutputArray
+
+    def desactivarOP(self, estado):
+        self.cursor.execute("UPDATE " + DataBase.Tablas.restos + " SET estado = ?, color = null WHERE idResto = 1", estado)
         self.cursor.commit()
         self.close()

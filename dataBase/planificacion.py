@@ -76,6 +76,7 @@ class Planificacion(DataBase):
               ,[bloque]
               ,rom.Maquina
               ,rom.OP
+              ,rom.RUTA_ASIGNADA
               ,[CantProgramado]
               ,[CantidadProcesada]
               ,[Deuda]
@@ -86,12 +87,12 @@ class Planificacion(DataBase):
               ,[Reproceso]
               ,[id]
           FROM (
-		  SELECT Programa, bloque, Maquina, OP, COUNT(idPieza) AS CantProgramado, SUM(lectura) AS CantidadProcesada, 
+		  SELECT Programa, bloque, Maquina, OP, RUTA_ASIGNADA, COUNT(idPieza) AS CantProgramado, SUM(lectura) AS CantidadProcesada, 
 			SUM(CASE WHEN lectura >= 1 THEN 0 ELSE 1 END) AS Deuda, PIEZA_NOMBREMATERIAL, PIEZA_PROFUNDO, PIEZA_NOMBRECOLOR,
 			PIEZA_DESCRIPCION, SUM(Reproceso) AS Reproceso, 
 			CAST(Programa AS varchar) + '-' + CAST(bloque AS varchar) + '-' + Maquina AS id
 			FROM            dbo.TableroBase_""" + maquina + """
-			GROUP BY Maquina, Programa, bloque, OP, PIEZA_NOMBREMATERIAL, PIEZA_PROFUNDO, PIEZA_NOMBRECOLOR, PIEZA_DESCRIPCION
+			GROUP BY Maquina, Programa, bloque, OP, RUTA_ASIGNADA, PIEZA_NOMBREMATERIAL, PIEZA_PROFUNDO, PIEZA_NOMBRECOLOR, PIEZA_DESCRIPCION
 		  ) as rom
           WHERE Programa IS NOT NULL AND bloque IS NOT NULL AND Deuda >= 1
                 """)

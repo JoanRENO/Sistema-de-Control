@@ -23,9 +23,9 @@
             <li class="nav-item" onclick="myFunction(2)">
                 <a class="nav-link" href="#">Baja</a>
             </li>
-          <!--  <li class="nav-item" onclick="myFunction(3)">
+            <li class="nav-item" onclick="myFunction(3)">
                 <a class="nav-link" href="#">Optiplanning</a>
-            </li> -->
+            </li>
           </ul>
         </div>
       </nav>
@@ -72,7 +72,7 @@
                             <label for="medidas">Ingrese medidas: </label>
                             <input type="text" class="form-control" id="medidas" name="medidas" placeholder="Medidas" required>
                             </div>
-                            <button id="boton_alta" type="submit" class="btn btn-primary" {{buttons1}}>Ingresar</button>
+                            <button id="boton_alta" type="submit" class="btn btn-primary">Ingresar</button>
                         </form>
             <br>
                 </div>
@@ -116,7 +116,7 @@
                         <select name="pieza_baja" data-live-search="true" id="pieza_baja" class="form-control selectpicker" required>
                         </select>
                     </div>
-                    <button id="boton_baja" type="submit" class="btn btn-primary" {{buttons1}}>Dar de Baja</button>
+                    <button id="boton_baja" type="submit" class="btn btn-primary">Dar de Baja</button>
                 </form>
             </div>
             </div>
@@ -147,13 +147,36 @@
                     <div>
                         <h3 id="opt" style="background-color:{{backgroundcolor}};" >Optiplanning</h3>
                         <div class="row">
-                            <form action={{url_for('activarOP')}} method="post">
-                            <button id="activar" class="btn btn-primary" {{buttons1}}>Acticar</button>
-                            </form>
+                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" {{buttons1}}>Acticar</button>
                             <form action={{url_for('desactivarOP')}} method="post">
                             <button id="desactivar" class="btn btn-primary" {{buttons2}}>Desactivar</button>
                             </form>
                         </div>
+                        <!-- Modal -->
+                            <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                              <div class="modal-dialog modal-xl" role="document">
+                                <div class="modal-content">
+                                  <div class="modal-header">
+                                    <h5 class="modal-title" id="exampleModalLabel">Seleccione los colores a utilizar</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                      <span aria-hidden="true">&times;</span>
+                                    </button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <form action={{url_for('activarOP')}} method="post">
+                                        <select class="selectpicker" name="selecciones" aria-multiselectable="true" data-live-search="true" multiple>
+                                            {% for color in coloresALTA%}
+                                                <option value="{{ color['cod_selco'] }}">{{ color['color'] }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <br><br>
+                                        <button id="activar" class="btn btn-primary">Acticar</button>
+                                        <button type="button" class="btn btn-danger" data-dismiss="modal">Cancelar</button>
+                                    </form>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
                     </div>
                     <br>
                     <form action={{url_for('baja_resto_id')}} method="post">
