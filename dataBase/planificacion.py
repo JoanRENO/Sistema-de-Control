@@ -21,7 +21,7 @@ class Planificacion(DataBase):
               ,[TiempoSTD_Dias]
               ,DATEDIFF(day, InicioPlanificado, InicioReal) as DifInicio
               ,DATEDIFF(day, FinalTeorico, FinalReal) as DifFin
-          FROM [PRODUCCION_PLANTA].[dbo].PlanificacionReporte""" + maquina + " ORDER BY Programa, bloque")
+          FROM [PRODUCCION_PLANTA].[dbo].PlanificacionReporte""" + maquina + " WHERE CantDeuda > 0 ORDER BY Programa, bloque")
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -92,9 +92,10 @@ class Planificacion(DataBase):
 			PIEZA_DESCRIPCION, SUM(Reproceso) AS Reproceso, 
 			CAST(Programa AS varchar) + '-' + CAST(bloque AS varchar) + '-' + Maquina AS id
 			FROM            dbo.TableroBase_""" + maquina + """
+			WHERE Programa IS NOT NULL AND bloque IS NOT NULL
 			GROUP BY Maquina, Programa, bloque, OP, RUTA_ASIGNADA, PIEZA_NOMBREMATERIAL, PIEZA_PROFUNDO, PIEZA_NOMBRECOLOR, PIEZA_DESCRIPCION
 		  ) as rom
-          WHERE Programa IS NOT NULL AND bloque IS NOT NULL AND Deuda >= 1
+          WHERE Deuda >= 1
                 """)
         records = self.cursor.fetchall()
         OutputArray = []
@@ -128,6 +129,7 @@ class Planificacion(DataBase):
 		  LEFT JOIN PRODUCCION_PLANTA.dbo.PlanificacionNotas pn ON pn.OP = rom.OP AND pn.Maquina = rom.Maquina AND pn.Pieza IS NULL
           WHERE Programa IS NOT NULL AND bloque IS NOT NULL
           GROUP BY Programa, bloque, rom.Maquina, rom.OP, pn.Descripcion
+          HAVING SUM(Deuda) > 0
           ORDER BY Programa, bloque, rom.Maquina, rom.OP
                 """)
         records = self.cursor.fetchall()

@@ -296,6 +296,15 @@ def escanear_PT(maquina):
                 return redirect(url_for('producto_terminado', maquina=maquina))
             else:
                 Control().updatePM(codigo, maquina)
+                om = Control().getOM(codigo)
+                status, idOdoo = Control().getIdOdoo(om)
+                if status == 200:
+                    Control().putQtyProduced(om, idOdoo)
+                else:
+                    Control().logOdoo(idOdoo, om, status, 'Error: ID no encontrado')
+                #if Control().verificarComplete(om) == 1:
+                #   status, getStatus = Control().putOdoo(idOM)
+                #   Control().logOdoo(idOM, om, status, getStatus)
                 return redirect(url_for('producto_terminado', maquina=maquina))
         except pyodbc.DataError:
             flash("Error: el PR/MO ingresado es incorrecto. Intente nuevamente")

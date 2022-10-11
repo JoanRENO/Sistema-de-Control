@@ -209,12 +209,12 @@ class Reproceso(DataBase):
         im.paste(img, (140, 100))
 
         #INFO2
-        txt2 = Image.new('RGB', (1250, 400), (255, 255, 255))
+        txt2 = Image.new('RGB', (1270, 400), (255, 255, 255))
         d = ImageDraw.Draw(txt2)
         d.text((280, 2), idModulo, font=fnt10, fill=(0, 0, 0))
-        if len(PIEZA_DESCRIPCION) > 64:
-            d.text((2, 52), PIEZA_DESCRIPCION[:64], font=fnt10, fill=(0, 0, 0))
-            d.text((2, 102), PIEZA_DESCRIPCION[64:] + ' ' + lado, font=fnt10, fill=(0, 0, 0))
+        if len(PIEZA_DESCRIPCION) > 62:
+            d.text((2, 52), PIEZA_DESCRIPCION[:62], font=fnt10, fill=(0, 0, 0))
+            d.text((2, 102), PIEZA_DESCRIPCION[62:] + ' ' + lado, font=fnt10, fill=(0, 0, 0))
         else:
             d.text((2, 52), PIEZA_DESCRIPCION + ' ' + lado, font=fnt10, fill=(0, 0, 0))
         d.text((2, 150), SO, font=fnt11, fill=(0, 0, 0))
