@@ -397,7 +397,10 @@ def subir_archivo():
                 flash('Los MODULOS se han subido correctamente')
                 return redirect(url_for('index4', ventana=1))
             elif tipo == 'basePiezas':
-                ABM().Alta_Piezas(archivo.filename)
+                falta_info = ABM().Alta_Piezas(archivo.filename)
+                if falta_info == 'falta_info':
+                    flash("OPERACION CANCELADA, DATOS INCORRECTOS EN RUTA_ASIGNADA O idModulo", 'warning')
+                    return redirect(url_for('index4', ventana=1))
                 print("OPERACION SUBIDA DE DATOS:  COMPLETADA")
                 flash('Las PIEZAS se han subido correctamente')
                 return redirect(url_for('index4', ventana=1))
@@ -695,7 +698,9 @@ def generar_reproceso(tipo):
                                             info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                             info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
                                             info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto, "")
-                Reproceso().imprimirEtiqueta()
+                solicitarEtiquetas = request.form['imprimir1']
+                if solicitarEtiquetas == "SI":
+                    Reproceso().imprimirEtiqueta()
             else:
                 return redirect(url_for('reproceso', display="41"))
             return redirect(url_for('reproceso', display="1"))
@@ -725,8 +730,9 @@ def generar_reproceso(tipo):
                                                 info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                                 info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
                                                 info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, maq_detecto, lado)
-                    Reproceso().imprimirEtiqueta()
-
+                    solicitarEtiquetas = request.form['imprimir2']
+                    if solicitarEtiquetas == "SI":
+                        Reproceso().imprimirEtiqueta()
             else:
                 return redirect(url_for('reproceso', display="42"))
             return redirect(url_for('reproceso', display="2"))
@@ -747,7 +753,9 @@ def generar_reproceso(tipo):
                                             info['PIEZA_CODIGORANURA'], info['PIEZA_TAPACANTO_DERECHO'],
                                             info['PIEZA_TAPACANTO_INFERIOR'], info['PIEZA_TAPACANTO_IZQUIERDO'],
                                             info['PIEZA_TAPACANTO_SUPERIOR'], info['PIEZA_CODIGO'], maq_select, "LINEA", "")
-                Reproceso().imprimirEtiqueta()
+                solicitarEtiquetas = request.form['imprimir3']
+                if solicitarEtiquetas == "SI":
+                    Reproceso().imprimirEtiqueta()
             else:
                 return redirect(url_for('reproceso', display="43"))
             return redirect(url_for('reproceso', display="3"))

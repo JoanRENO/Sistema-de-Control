@@ -126,7 +126,7 @@ class Reproceso(DataBase):
             OutputArray.append(dict(zip(columnNames, record)))
         self.close()
         if OutputArray == []:
-            return "ID no encontrada"
+            return "ID no encontrado"
         return OutputArray[0]['RUTA_ASIGNADA']
 
     def buscar_om(self, om):

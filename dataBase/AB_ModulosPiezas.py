@@ -3,7 +3,7 @@ from dataBase.helpers import fecha
 import pandas
 import xlrd
 from os import remove
-
+import math
 
 class ABM(DataBase):
     def Alta_Modulos(self, nombre_archivo):
@@ -218,6 +218,13 @@ class ABM(DataBase):
                        'PESO_PIEZAS', 'PASADAS_STF', 'PRECIO_FRTES_VIDRIO', 'PRECIO_LUSTRE', 'PRECIO_TURU', 'N_PALLET',
                        'SUP', 'PERIMETRO', 'CANTIDAD_2', 'idModulo', 'VACIO_4', 'VACIO_5', 'VACIO_6', 'VACIO_7',
                        'VACIO_8', 'VACIO_9', 'VACIO_10']]
+
+        for row in tabla['idModulo']:
+            if type(row) == float and math.isnan(row):
+                return 'falta_info'
+        for row in tabla['RUTA_ASIGNADA']:
+            if (type(row) == float and math.isnan(row)) or row == 'PROGRAMR':
+                return 'falta_info'
 
         tabla.insert(0, "idPieza", None, allow_duplicates=False)
         del (tabla['N_PALLET'])
