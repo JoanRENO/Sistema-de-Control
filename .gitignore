@@ -1,6 +1,6 @@
-/static
+static/
 dataBase/__pycache__
-dataBase\__pycache__
 dataBase/connection.py
 /__pycache__
-.xlsx
+Prueba*
+*.xlsx

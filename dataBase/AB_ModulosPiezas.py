@@ -223,7 +223,7 @@ class ABM(DataBase):
             if type(row) == float and math.isnan(row):
                 return 'falta_info'
         for row in tabla['RUTA_ASIGNADA']:
-            if (type(row) == float and math.isnan(row)) or row == 'PROGRAMR':
+            if (type(row) == float and math.isnan(row)) or row == 'PROGRAMAR':
                 return 'falta_info'
 
         tabla.insert(0, "idPieza", None, allow_duplicates=False)

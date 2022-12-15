@@ -72,6 +72,16 @@
                       {% endwith %}
                     <form action={{url_for('lectura_masiva', maquina=maquina)}} method="POST">
                         <div class="form-group">
+                            <label for="selectmultiple">Seleccion multiple</label>
+                            <div id="selectmultiple" class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <label class="btn btn-primary" onclick="selectmultiple('0')">
+                                <input type="radio" name="multiple" id="multipleSI" value="SI"> SI
+                            </label>
+                            <label class="btn btn-primary active" onclick="selectmultiple('1')">
+                                <input type="radio" name="multiple" id="multipleNO" value="NO" checked> NO
+                            </label>
+                        </div>
+                        <div class="form-group">
                             <label for="ops">OP:</label>
                             <select name="ops" data-live-search="true" id="ops" class="form-control" required>
                             <option selected></option>
@@ -93,7 +103,13 @@
                             <option selected></option>
                             </select>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group" id="form-piezaMultiple" style="display: none;">
+                            <label for="piezasMultiple">Piezas:</label>
+                            <select name="piezasMultiple" data-live-search="true" id="piezasMultiple" class="form-control" multiple>
+                            </select>
+                        </div>
+                        </div>
+                        <div class="form-group" id="form-pieza">
                             <label for="piezas">Pieza:</label>
                             <select name="piezas" data-live-search="true" id="piezas" class="form-control">
                             <option selected></option>
@@ -409,24 +425,27 @@
                 $("#colores").selectpicker();
                 $("#espesores").selectpicker();
 
-                function load_data(type, op, color, espesor, maquina) {
+                function load_data(type, op, color, espesor, maquina, multi) {
                     $.ajax({
                         url: "/espesores",
                         method: "POST",
                         data: { type: type, op: op, color: color, espesor: espesor, maquina: maquina },
                         dataType: "json",
                         success: function (data) { //alert(espesor)
-                            var html = "<option selected></option>";
+                            if (multi == "NO") {
+                                var html = "<option selected></option>";
+                            }
                             for (var count = 0; count < data.length; count++) {
                                 html += '<option value="' + data[count].PIEZA_DESCRIPCION + '">' + data[count].PIEZA_DESCRIPCION + "</option>";
                                 }
-
                             if (type == "Espesor") {
                                 $("#espesores").html(html);
                                 $("#espesores").selectpicker("refresh");
                             } else {
                                 $("#piezas").html(html);
                                 $("#piezas").selectpicker("refresh");
+                                $("#piezasMultiple").html(html);
+                                $("#piezasMultiple").selectpicker("refresh");
                             }
                         },
                     });
@@ -438,7 +457,6 @@
                         success: function (data) { //alert(espesor)
                             var html = "";
                             html += '<label value="' + data[0].CANTIDAD + '"> CANTIDAD DE PIEZAS SELECCIONADAS: ' + data[0].CANTIDAD + "</label>";
-
                             if (type == "Espesor") {
                                 $("#espesores").html(html);
                                 $("#espesores").selectpicker("refresh");
@@ -455,7 +473,7 @@
                     var color = $("#colores").val();
                     var espesor = $("#espesores").val();
 					var maquina = '{{ maquina }}';
-                    load_data("Pieza", op, color, espesor, maquina);
+                    load_data("Pieza", op, color, espesor, maquina, multi);
                 });
             });
         </script>
@@ -475,8 +493,8 @@
                         success: function (data) { //alert(pieza)
                             var html = "";
 
-                            html += '<label for="cant">CANTIDAD DE PIEZAS REALIZADAS: </label>' +
-                            '<input class="form-control" type="number" id="cant" name="cant" min="1" max="' + data[0].CANTIDAD + '" placeholder="CANT EN EL SISTEMA: ' + data[0].CANTIDAD + '" required><br>';
+                            html += '<div id="cantInput"><label for="cant">CANTIDAD DE PIEZAS REALIZADAS: </label>' +
+                            '<input class="form-control" type="number" id="cant" name="cant" min="1" max="' + data[0].CANTIDAD + '" placeholder="CANT EN EL SISTEMA: ' + data[0].CANTIDAD + '" required></div><br>';
                             if (type == "Pieza") {
                                 $("#piezas").html(html);
                                 $("#piezas").selectpicker("refresh");
@@ -497,6 +515,37 @@
                     load_data("Cantidad", op, color, espesor, pieza, maquina);
                 });
             });
+        </script>
+        <script type="text/javascript">
+            function selectmultiple(num) {
+                var x_div1 = document.getElementById("form-pieza");
+                var x_div_cant = document.getElementById("cantInput");
+                var x_div2 = document.getElementById("form-piezaMultiple");
+                if (num == "1") {
+                    x_div1.style.display = "block";
+                    x_div2.style.display = "none"
+                    multi = "NO"
+                    html = "<option selected></option>"
+                    {% for row in ops %}
+                        html += "<option value=" + "{{row['OP']}}" + ">" + "{{row['OP']}}" + "</option>"
+                    {% endfor %}
+                    $("#ops").html(html);
+                    $("#ops").selectpicker("refresh");
+                } else {
+                    x_div1.style.display = "none";
+                    //x_div_cant.style.display = "none";
+                    x_div2.style.display = "block"
+                    multi = "SI"
+                    html = "<option selected></option>"
+                    {% for row in ops %}
+                        html += "<option value=" + "{{row['OP']}}" + ">" + "{{row['OP']}}" + "</option>"
+                    {% endfor %}
+                    $("#ops").html(html);
+                    $("#ops").selectpicker("refresh");
+                }
+            }
+
+            let multi = "NO"
         </script>
         <script>
           function abrirNuevoTab(url) {

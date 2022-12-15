@@ -158,7 +158,27 @@ def lectura_masiva(maquina):
             op = request.form['ops']
             color = request.form['colores']
             espesor = request.form['espesores']
-            pieza = request.form['piezas']
+            multi = request.form['multiple']
+            print(multi)
+            if multi == "SI":
+                pieza = request.form.getlist('piezasMultiple')
+                for p in pieza:
+                    if p != '':
+                        cantidad = LecturaMasiva().calcular_cant(op, color, espesor, p, maquina)
+                        print(cantidad)
+                        cantidad = cantidad[0]['CANTIDAD']
+                        piezas = LecturaMasiva().verificar_lectura(op, color, espesor, p, maquina, cantidad)
+                        if piezas == 1:
+                            flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
+                                "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + p, 'warning')
+                            return redirect(url_for('lectura', maquina=maquina))
+                        LecturaMasiva().updateMasivo(piezas, maquina)
+                        LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, p, cantidad)
+                flash("Lectura masiva realizada con exito.")
+                return redirect(url_for('lectura', maquina=maquina))
+            else:
+                pieza = request.form['piezas']
+            print(pieza)
             if pieza == "":
                 cant = LecturaMasiva().calcular_cant(op, color, espesor, 1, maquina)
                 print(cant)
@@ -170,8 +190,7 @@ def lectura_masiva(maquina):
             piezas = LecturaMasiva().verificar_lectura(op, color, espesor, pieza, maquina, cant)
             if piezas == 1:
                 flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
-                      "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza,
-                      'warning')
+                    "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza, 'warning')
                 return redirect(url_for('lectura', maquina=maquina))
             LecturaMasiva().updateMasivo(piezas, maquina)
             if pieza == '':
@@ -296,12 +315,16 @@ def escanear_PT(maquina):
                 return redirect(url_for('producto_terminado', maquina=maquina))
             else:
                 Control().updatePM(codigo, maquina)
+                #if maquina == "HORNO":
+                    #Control().imprimir_etiqueta(codigo)
                 om = Control().getOM(codigo)
-                status, idOdoo = Control().getIdOdoo(om)
-                if status == 200:
-                    Control().putQtyProduced(om, idOdoo)
-                else:
-                    Control().logOdoo(idOdoo, om, status, 'Error: ID no encontrado')
+                Control().logTablaOdoo(om)
+                #status, idOdoo = Control().getIdOdoo(om)
+                #if status == 200:
+                #    Control().putQtyProduced(om, idOdoo)
+                #else:
+                #    Control().logOdoo(idOdoo, om, status, 'Error de red o ID no encontrado')
+
                 #if Control().verificarComplete(om) == 1:
                 #   status, getStatus = Control().putOdoo(idOM)
                 #   Control().logOdoo(idOM, om, status, getStatus)
@@ -812,10 +835,10 @@ def imprimir_pallet():
 def PL(numPallet, op):
     tabla = Pallet().getTablaPalletImprimir(numPallet, op)
     acuerdos, ambientes, barcodes, cant = Pallet().obtenerDatos(numPallet, op)
-    cantidad = str((cant/14)+1)[0]
+    cantidad = round((cant/14)+1)
     return render_template('PL.html', numPallet=numPallet, tabla=tabla, OP=tabla[0]['OP'],
                            fInicio=tabla[0]['fechaInicio'], fFin=tabla[0]['fechaFin']
-                           , acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=int(cantidad), total=cant)
+                           , acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=cantidad, total=cant)
 
 @app.route('/getTablaPallet', methods=["POST", "GET"])
 def getTablaPallet():

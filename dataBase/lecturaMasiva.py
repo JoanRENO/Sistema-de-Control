@@ -83,7 +83,7 @@ class LecturaMasiva(DataBase):
                         "AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
             self.cursor.execute(complete, color, espesor)
         else:
-            complete = "SELECT TOP " + cant + " idPieza FROM " + DataBase.Tablas.basePiezas + " WHERE OP = '" + op + "' " \
+            complete = "SELECT TOP " + str(cant) + " idPieza FROM " + DataBase.Tablas.basePiezas + " WHERE OP = '" + op + "' " \
                        "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND PIEZA_DESCRIPCION=?" \
                        " AND (lectura" + maquina + " = 0 OR lectura" + maquina + " is null)" \
                        " AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"

@@ -96,7 +96,7 @@ class Pallet(DataBase):
 
     def getTablaImprimir(self):
         self.cursor.execute("""
-        SELECT TOP 10 p.idPallet
+        SELECT TOP 14 p.idPallet
       ,fechaInicio
       ,fechaFin
       ,estado

@@ -7,21 +7,21 @@ class Planificacion(DataBase):
         print("PASO 1: ")
         self.cursor.execute("""
         SELECT [Programa]
-              ,[bloque]
-              ,[Maquina]
-              ,[CantProgramado]
-              ,[CantidadProcesada]
-              ,[CantDeuda]
-              ,[PorcCump]
-              ,[Reproceso]
-              ,[InicioPlanificado]
-              ,[InicioReal]
-              ,[FinalTeorico]
-              ,[FinalReal]
-              ,[TiempoSTD_Dias]
-              ,DATEDIFF(day, InicioPlanificado, InicioReal) as DifInicio
-              ,DATEDIFF(day, FinalTeorico, FinalReal) as DifFin
-          FROM [PRODUCCION_PLANTA].[dbo].PlanificacionReporte""" + maquina + " WHERE CantDeuda > 0 ORDER BY Programa, bloque")
+            ,[bloque]
+            ,[Maquina]
+            ,[CantProgramado]
+            ,[CantidadProcesada]
+            ,[CantDeuda]
+            ,[PorcCump]
+            ,[Reproceso]
+            ,[InicioPlanificado]
+            ,[InicioReal]
+            ,[FinalTeorico]
+            ,[FinalReal]
+            ,[TiempoSTD_Dias]
+            ,DATEDIFF(day, InicioPlanificado, InicioReal) as DifInicio
+            ,DATEDIFF(day, FinalTeorico, FinalReal) as DifFin
+        FROM [PRODUCCION_PLANTA].[dbo].PlanificacionReporte""" + maquina + " WHERE CantDeuda > 0 OR CantDeuda IS NULL  ORDER BY Programa, bloque")
         records = self.cursor.fetchall()
         OutputArray = []
         columnNames = [column[0] for column in self.cursor.description]
@@ -96,6 +96,7 @@ class Planificacion(DataBase):
 			GROUP BY Maquina, Programa, bloque, OP, RUTA_ASIGNADA, PIEZA_NOMBREMATERIAL, PIEZA_PROFUNDO, PIEZA_NOMBRECOLOR, PIEZA_DESCRIPCION
 		  ) as rom
           WHERE Deuda >= 1
+          ORDER BY PIEZA_DESCRIPCION      
                 """)
         records = self.cursor.fetchall()
         OutputArray = []
