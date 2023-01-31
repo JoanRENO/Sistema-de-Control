@@ -109,9 +109,9 @@
                   <strong>Desea Finalizar Turno? </strong>
                     <br><br>
                     <form action={{url_for('turno', template="control", maquina=maquina)}} method="POST">
-                         <button type="submit" class="btn btn-primary">Aceptar</button>
-                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                     </form>
+                        <button type="submit" class="btn btn-primary">Aceptar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </form>
                 {% else %}
                 <strong>Ingrese los numeros de legajos de cada trabajador <br> del centro de trabajo:  </strong>
                     <br><br>
@@ -162,9 +162,9 @@
                             </div>
                         </div>
                         <br>
-                         <button type="submit" class="btn btn-primary">Aceptar</button>
-                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                     </form>
+                        <button type="submit" class="btn btn-primary">Aceptar</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    </form>
                   {% endif %}
               </div>
             </div>
@@ -286,7 +286,7 @@
         var win = window.open(url, '_blank');
       }
       $('#informeDiario').click(function(){
-        abrirNuevoTab('{{url_for('informeDiario', maquina=maquina)}}')
+        abrirNuevoTab("{{url_for('informeDiario', maquina=maquina)}}")
       })
     </script>
 

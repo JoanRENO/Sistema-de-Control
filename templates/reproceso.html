@@ -94,6 +94,7 @@
                         <option>Error de identificacion</option>
                         <option>Rotura</option>
                         <option>Rotura DESPACHO</option>
+                        <option>Mojado</option>
                         <option>Otros</option>
                         </select>
                     </div>
@@ -130,7 +131,7 @@
                     <div class="form-group">
                     <select name="maquina1_1" data-live-search="true" id="maquina1_1" class="form-control" required>
                             {% set maquinas = ["GBN1", "SLC", "NST", "STF", "MRT1", "MRT2", "MRT3", "MRT4", "IDM",
-                            "RVR", "FTAL1", "KBT1", "KBT2", "VTP1", "LEA", "PRS", "ALU", "LM", "LP", "LC"] %}
+                            "RVR", "FTAL1", "KBT1", "KBT2", "VTP1", "LEA", "PRS", "ALU", "LM", "LP", "LC", "CX"] %}
                             <option selected>Maquina</option>
                             {% for maquinaRP in maquinas %}
                             <option value="{{maquinaRP}}">{{maquinaRP}}</option>
@@ -176,6 +177,7 @@
                         <option>Error de identificacion</option>
                         <option>Rotura</option>
                         <option>Rotura DESPACHO</option>
+                        <option>Mojado</option>
                         <option>Otros</option>
                         </select>
                     </div>
@@ -272,6 +274,7 @@
                         <option>Error de identificacion</option>
                         <option>Rotura</option>
                         <option>Rotura DESPACHO</option>
+                        <option>Mojado</option>
                         <option>Otros</option>
                         </select>
                     </div>

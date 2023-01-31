@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="es">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <!-- Bootstrap CSS -->
+        <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-4.3.1-dist/css/bootstrap.min.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-3.4.1-dist/css/bootstrap.min.css')}}">
+        <link rel="stylesheet" href="{{url_for('static', filename='bootstrap-select-1.13.14/dist/css/bootstrap-select.min.css')}}">
+        <link rel="stylesheet" href="../static/style.css">
+        <title>Sistema de control</title>
+    </head>
+
+    <script src="{{url_for('static', filename='/jquery/3.3.1/jquery.js')}}"></script>
+    <script src="{{url_for('static', filename='/bootstrap-3.4.1-dist/js/bootstrap.min.js')}}"></script>
+    <script src="{{url_for('static', filename='/bootstrap-select-1.13.14/dist/js/bootstrap-select.min.js')}}"></script>
+
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a href="/" title="Volver al menu principal">
+                <img class="img-fluid" src="../static/images/logoRenoGris2.png" alt="" width="100px" height="40px" style="display: flex; align-items: center;">
+            </a>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav nav-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            CREAR <br> PAQUETE
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('comex_pallets', opc=0, nroPallet=0, ambiente=0) }}">
+                            CREAR <br> PALLET
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('comex_contenedores') }}">
+                            CONTEDORES
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        <br>
+        <div class="container">
+            <div class="row centrar">
+                <!--<img id="precarga" class="img-fuild" src="../static/images/logoRenoGris2.png" alt="" width="100px" height="50px" style="background-color: rgb(0, 0, 0);">
+                <div class="lds-ellipsis"><div></div><div></div><div></div><div></div></div> -->    
+            </div>
+                <div class="form-group">
+                    <div class="row" style="align-items: center;">
+                        <!-- <div class="col-8">
+                            <label for="ops">OP:</label>
+                            <select class="form-control selectpicker" name="op" id="ops" data-live-search="true" required>
+                                <option value="" selected></option>
+                                {% for op in ops %}
+                                    <option value="op['Op']">{{ op['Op'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div> -->
+                        <h1>{{ arg }}</h1>
+                        <!--<div id="boton" class="col-4 btn-group" role="group">
+                            <button id="btn-paquete" name="btn-group" type="button" class="btn btn-primary">Armar Paquete</button>
+                            <button id="btn-pallet" name="btn-group" type="button" class="btn btn-primary">Armar Pallet</button>
+                        </div> -->
+                    </div>
+                    <hr style="border-width: 1rem; border-color: rgba(86,86,86); border-radius: 1rem">
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    {% if category == 'message' %}
+                                    <div class="alert alert-success" role="alert">
+                                    {% else %}
+                                    <div class="alert alert-{{ category }}" role="alert">
+                                    {% endif %}
+                                    <strong>{{ message }}</strong>
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                    </button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        <!--<div id="pallet" style="display: None;">
+                        <h1>Pallet</h1>
+                                <label for="nropaquete">Ingrese Nro Paquete:</label>
+                                <input name="nropaquete" type="number" class="form-control" id="nropaquete">
+                                <button type="submit" class="btn btn-default" style="display: none;">Ingresar</button>
+                            
+                        </div> -->
+                        <div id="paquete">
+                            <div class="row">
+                                <h1>Paquete Nro {{ nroPaquete }}</h1>
+                            </div>
+                            <form action="{{ url_for('comex_agregarPieza', nroPaquete=nroPaquete)}}" method="post">
+                                <label for="PR">Ingrese ID Pieza:</label>
+                                <input name="prmo" min="1" max="99999999" type="number" class="form-control" id="PR" autofocus required>
+                                <button type="submit" class="btn btn-default" style="display: none;">Ingresar</button>
+                            </form>
+                        </div>
+                    <br><br>
+                    <table class="table table-dark table-striped table-hover">
+                        <thead>
+                            <tr style="font-size: 1.8rem;">
+                                <td><strong>IdPieza</strong></td>
+                                <td><strong>Descripcion</strong></td>
+                                <td></td>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pieza in piezas_selected %}
+                                <tr>
+                                    <td>{{ pieza['idPieza'] }}</td>
+                                    <td>{{ pieza['PIEZA_DESCRIPCION'] }}</td>
+                                    <td><form action="{{ url_for('comex_eliminarPieza', idPieza=pieza['idPieza']) }}" method="post"><button class="btn btn-danger active"><strong>X</strong></button></form></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+    </body>
+    <!-- script>
+            $(document).ready(function () {
+                //$("#ops").selectpicker();
+                //$(document).on("change", "#ops", function () {
+                    //var op = $("#ops").val();
+                    //$.ajax({
+                        //url: "/comex_op",
+                        //method: "POST",
+                        //data: { op: op },
+                        //dataType: "json",
+                        //success: function (data) { 
+                            //var html = '<button id="btn-pallet" name="btn-group" type="button" class="btn btn-primary">Armar Pallet</button><button id="btn-paquete" name="btn-group" type="button" class="btn btn-primary">Armar Paquete</button>';
+                            //html += '<div id="cantInput"><label for="cant">CANTIDAD DE PIEZAS REALIZADAS: </label>' +
+                            //'<input class="form-control" type="number" id="cant" name="cant" min="1" max="' + data[0].CANTIDAD + '"';
+                            //$("#boton").html(html);
+                            //$("#ops").selectpicker("refresh");
+                        //},
+                    //});
+                //});
+                $("#PR").prop("required", true);
+                $("#PR").focus();
+                $(document).on("click", "#btn-pallet", function () {
+                    $("#pallet").show();
+                    $("#paquete").hide();
+                    $("#PR").prop("required", false);
+                    $("#PR").blur();
+                    $("#nropaquete").prop("required", true);
+                    $("#nropaquete").focus();
+                });
+                $(document).on("click", "#btn-paquete", function () {
+                    $("#paquete").show();
+                    $("#pallet").hide();
+                    $("#nropaquete").prop("required", false);
+                    $("#nropaquete").blur();
+                    $("#PR").prop("required", true);
+                    $("#PR").focus();
+                });
+        });
+    </script -->
+
+
+</html>

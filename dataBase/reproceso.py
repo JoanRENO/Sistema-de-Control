@@ -8,7 +8,7 @@ from dataBase.helpers import fecha
 
 class Reproceso(DataBase):
     def lista_ops(self, maquina):
-        if maquina in ["LM", "LP", "LC"]:
+        if maquina in ["LM", "LP", "LC", "CX"]:
             self.cursor.execute("SELECT DISTINCT OP FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' ORDER BY OP")
         else:
@@ -23,7 +23,7 @@ class Reproceso(DataBase):
         return OutputArray
 
     def lista_colores(self, op, maquina):
-        if maquina in ["LM", "LP", "LC"]:
+        if maquina in ["LM", "LP", "LC", "CX"]:
             self.cursor.execute("SELECT DISTINCT PIEZA_NOMBRECOLOR FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ?"
                                 " ORDER BY PIEZA_NOMBRECOLOR", op)
@@ -40,7 +40,7 @@ class Reproceso(DataBase):
         return OutputArray
 
     def lista_espesores(self, op, color, maquina):
-        if maquina in ["LM", "LP", "LC"]:
+        if maquina in ["LM", "LP", "LC", "CX"]:
             self.cursor.execute("SELECT DISTINCT PIEZA_PROFUNDO FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ?"
                                 " AND PIEZA_NOMBRECOLOR = ? "
@@ -59,7 +59,7 @@ class Reproceso(DataBase):
         return OutputArray
 
     def lista_piezas(self, op, color, espesor, maquina):
-        if maquina in ["LM", "LP", "LC"]:
+        if maquina in ["LM", "LP", "LC", "CX"]:
             self.cursor.execute("SELECT DISTINCT PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
                                 " AND PIEZA_PROFUNDO = ? "
@@ -78,7 +78,7 @@ class Reproceso(DataBase):
         return OutputArray
 
     def info_piezas(self, op, color, espesor, maquina, pieza):
-        if maquina in ["LM", "LP", "LC"]:
+        if maquina in ["LM", "LP", "LC", "CX"]:
             self.cursor.execute("SELECT COUNT(idPieza) as CANTIDAD, RUTA_ASIGNADA, PIEZA_DESCRIPCION FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maquina + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
                                 " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? "
@@ -99,7 +99,7 @@ class Reproceso(DataBase):
         return OutputArray
 
     def ids_op(self, op, color, espesor, maq_detecto, maq_select, pieza, cantidad):
-        if maq_detecto in ["LM", "LP", "LC"]:
+        if maq_detecto in ["LM", "LP", "LC", "CX"]:
             self.cursor.execute("SELECT TOP " + cantidad + " idPieza FROM " + DataBase.Tablas.basePiezas +
                                 " WHERE RUTA_ASIGNADA LIKE '%" + maq_detecto + "%' AND OP = ? AND PIEZA_NOMBRECOLOR = ?"
                                 " AND PIEZA_PROFUNDO = ? AND PIEZA_DESCRIPCION = ? AND RUTA_ASIGNADA LIKE '%"

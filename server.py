@@ -17,6 +17,8 @@ from dataBase.pallet import Pallet
 from dataBase.restos import Resto
 from dataBase.produccion import Produccion
 from dataBase.planificacion import Planificacion
+from dataBase.comex import Comex
+import datetime
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = './'
@@ -97,8 +99,7 @@ def control(maquina):
         botonTurnoTexto = "Finalizar Turno"
         piezas = Control().getTabla(maquina)
     return render_template("control.html", maquina=maquina, piezas=piezas, botonTurnoStyle=botonTurnoStyle, botonTurnoTexto=botonTurnoTexto,
-                           botonTurnoDisabled=botonTurnoDisabled, botonParadaStyle=botonParadaStyle, botonParadaTexto=botonParadaTexto
-                           , botonInput=botonInput)
+                        botonTurnoDisabled=botonTurnoDisabled, botonParadaStyle=botonParadaStyle, botonParadaTexto=botonParadaTexto, botonInput=botonInput)
 
 
 @app.route('/control_escanear/<string:maquina>', methods=['POST'])
@@ -140,10 +141,9 @@ def lectura(maquina):
         botonParadaStyle = ""
         botonTurnoStyle = "danger"
         botonTurnoTexto = "Finalizar Turno"
-    return render_template('lectura_masiva.html', maquina=maquina, ops=LecturaMasiva().lista_ops(maquina)
-                           , ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina),
-                           botonTurnoStyle=botonTurnoStyle, botonTurnoTexto=botonTurnoTexto, botonTurnoDisabled=botonTurnoDisabled
-                           , botonParadaStyle=botonParadaStyle, botonParadaTexto=botonParadaTexto, botonInput=botonInput)
+    return render_template('lectura_masiva.html', maquina=maquina, ops=LecturaMasiva().lista_ops(maquina), ops_masivo=LecturaMasiva().getTablaLecturaMasiva(maquina),
+                        botonTurnoStyle=botonTurnoStyle, botonTurnoTexto=botonTurnoTexto, botonTurnoDisabled=botonTurnoDisabled, 
+                        botonParadaStyle=botonParadaStyle, botonParadaTexto=botonParadaTexto, botonInput=botonInput)
 
 
 @app.route('/lectura_masiva/<string:maquina>', methods=['POST'])
@@ -185,20 +185,22 @@ def lectura_masiva(maquina):
                 cant = cant[0]['CANTIDAD']
                 print("AAAAAA")
                 print(cant)
-            else:
-                cant = request.form['cant']
-            piezas = LecturaMasiva().verificar_lectura(op, color, espesor, pieza, maquina, cant)
-            if piezas == 1:
-                flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
-                    "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza, 'warning')
-                return redirect(url_for('lectura', maquina=maquina))
-            LecturaMasiva().updateMasivo(piezas, maquina)
-            if pieza == '':
+                LecturaMasiva().updateMasivo2(maquina, op, color, espesor)
                 LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, None, cant)
             else:
+                cant = request.form['cant']
+                piezas = LecturaMasiva().verificar_lectura(op, color, espesor, pieza, maquina, cant)
+                LecturaMasiva().updateMasivo(piezas, maquina)
                 LecturaMasiva().log_lecturaMasiva(usuario, op, color, espesor, maquina, pieza, cant)
+            #if piezas == 1:
+            #    flash("Esta lectura masiva ya se a realizado. OP: " + op + " "
+            #        "| COLOR: " + color + " | ESPESOR: " + espesor + " | PIEZA: " + pieza, 'warning')
+            #    return redirect(url_for('lectura', maquina=maquina))
+            #LecturaMasiva().updateMasivo(piezas, maquina)
+            #if pieza == '':
+            #else:
             flash("Lectura masiva realizada con exito. \n OP: " + op + " | COLOR: " + color + " | ESPESOR: " + espesor
-                  + " | PIEZA: " + pieza)
+                + " | PIEZA: " + pieza)
             return redirect(url_for('lectura', maquina=maquina))
     except pyodbc.DataError:
         flash("Error: Por favor ingrese todos los campos", 'danger')
@@ -315,8 +317,8 @@ def escanear_PT(maquina):
                 return redirect(url_for('producto_terminado', maquina=maquina))
             else:
                 Control().updatePM(codigo, maquina)
-                #if maquina == "HORNO":
-                    #Control().imprimir_etiqueta(codigo)
+                if maquina == "HORNO":
+                    Control().imprimir_etiqueta(codigo)
                 om = Control().getOM(codigo)
                 Control().logTablaOdoo(om)
                 #status, idOdoo = Control().getIdOdoo(om)
@@ -538,9 +540,8 @@ def reproceso(display):
             return render_template("reproceso.html", display1=display1, display2=display2, display3=display3, check1="checked")
         ruta = Reproceso().infoID(id)
         if id is not None:
-            return render_template("reproceso.html", idPieza="IdPieza: " + id + " | RUTA ASIGNADA: " + ruta,
-                                   maqs_1=re.split("-", ruta), idP=id,
-                                   display1=display1, display2=display2, display3=display3, check1="checked")
+            return render_template("reproceso.html", idPieza="IdPieza: " + id + " | RUTA ASIGNADA: " + ruta, maqs_1=re.split("-", ruta), idP=id,
+                                display1=display1, display2=display2, display3=display3, check1="checked")
     if display == "2":
         display1 = "display:None;"
         display2 = ""
@@ -556,26 +557,20 @@ def reproceso(display):
         if om is not None:
             if Reproceso().buscar_om(om) is None:
                 flash("Orden Manufactura no encontrada")
-                return render_template("reproceso.html", display1="display:None;", display2="display:None;",
-                                       display3="",
-                                       check3="checked")
-            return render_template("reproceso.html", om=om, ordenManu="OrdenManu: " + om,
-                               piezas=Reproceso().buscar_om(om), modulo=Reproceso().buscar_om(om)[0]['PT_PRODUCTO']
-                                   , display1=display1, display2=display2, display3=display3, check3="checked")
+                return render_template("reproceso.html", display1="display:None;", display2="display:None;", display3="", check3="checked")
+            return render_template("reproceso.html", om=om, ordenManu="OrdenManu: " + om, piezas=Reproceso().buscar_om(om), 
+                                modulo=Reproceso().buscar_om(om)[0]['PT_PRODUCTO'], display1=display1, display2=display2, display3=display3, check3="checked")
     if display[0] == "4":
         if display[2] == "0":
             flash("Este REPROCESO ya se a generado. ")
         else:
             flash("Por favor ingrese todos los campos")
         if display[1] == "1":
-            return render_template("reproceso.html", display1="", display2="display:None;", display3="display:None;",
-                                   check1="checked")
+            return render_template("reproceso.html", display1="", display2="display:None;", display3="display:None;", check1="checked")
         if display[1] == "2":
-            return render_template("reproceso.html", display1="display:None;", display2="", display3="display:None;",
-                                    check2="checked")
+            return render_template("reproceso.html", display1="display:None;", display2="", display3="display:None;", check2="checked")
         if display[1] == "3":
-            return render_template("reproceso.html", display1="display:None;", display2="display:None;", display3="",
-                                   check3="checked")
+            return render_template("reproceso.html", display1="display:None;", display2="display:None;", display3="", check3="checked")
 
 
 @app.route('/separaruta', methods=["POST", "GET"])
@@ -674,7 +669,7 @@ def maquina2():
             if maquina == x:
                 pos = maquinas.index(x)
         data = []
-        if maquina in ["LP", "LM", "LC"]:
+        if maquina in ["LP", "LM", "LC", "CX"]:
             a = len(maquinas)
             for x in maquinas:
                 data.append(x)
@@ -713,8 +708,7 @@ def generar_reproceso(tipo):
                 idPieza = request.form['idP']
                 info = Reproceso().info_final(idPieza)
                 Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], idPieza, maq_detecto, maq_select)
-                Reproceso().log_reproceso(idPieza, maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
-                                          info['RUTA_ASIGNADA'], info['OP'], causa)
+                Reproceso().log_reproceso(idPieza, maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1, info['RUTA_ASIGNADA'], info['OP'], causa)
                 Reproceso().generar_barcode(info['idPieza'], info['PIEZA_DESCRIPCION'], info['SO'],
                                             info['PRODUCTO_TERMINADO'], info['OP'], info['RUTA_ASIGNADA'],
                                             info['PIEZA_NOMBREMODOSUSTENTACION'],
@@ -746,7 +740,7 @@ def generar_reproceso(tipo):
                     info = Reproceso().info_final(x['idPieza'])
                     Reproceso().actualizarTabla(info['RUTA_ASIGNADA'], info['idPieza'], maq_detecto, maq_select)
                     Reproceso().log_reproceso(info['idPieza'], maq_select, info['PIEZA_DESCRIPCION'], maq_detecto, 1,
-                                              info['RUTA_ASIGNADA'], info['OP'], causa)
+                                            info['RUTA_ASIGNADA'], info['OP'], causa)
                     Reproceso().generar_barcode(info['idPieza'], info['PIEZA_DESCRIPCION'], info['SO'],
                                                 info['PRODUCTO_TERMINADO'], info['OP'], info['RUTA_ASIGNADA'],
                                                 info['PIEZA_NOMBREMODOSUSTENTACION'],
@@ -789,17 +783,17 @@ def generar_reproceso(tipo):
 def pallet(tipo):
     if tipo == "0":
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
+                            modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
     if tipo == "1":
         Pallet().crearPallet()
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
+                            modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
     if tipo == "2":
         idPallet = request.values.get('cerrar')
         print(idPallet)
         Pallet().cerrarPallet(idPallet)
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
+                            modulos=Pallet().getTablaModulosPallets(), idPallet2=0)
     if tipo == "3":
         idPallet = request.values.get('idPallet')
         if idPallet == '':
@@ -817,13 +811,13 @@ def pallet(tipo):
                 flash('Modulo inexistente', 'danger')
         print(idPallet)
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), idPallet2=int(idPallet))
+                            modulos=Pallet().getTablaModulosPallets(), idPallet2=int(idPallet))
     if tipo[0] == "4":
         om = request.values.get('idOM')
         indicador = Pallet().getIndicador(om)
         Pallet().eliminarModulo(om)
         return render_template('pallet.html', pallets=Pallet().getTablaPallets(),
-                               modulos=Pallet().getTablaModulosPallets(), idPallet2=indicador)
+                            modulos=Pallet().getTablaModulosPallets(), idPallet2=indicador)
 
 
 @app.route("/imprimir_pallet")
@@ -837,8 +831,8 @@ def PL(numPallet, op):
     acuerdos, ambientes, barcodes, cant = Pallet().obtenerDatos(numPallet, op)
     cantidad = round((cant/14)+1)
     return render_template('PL.html', numPallet=numPallet, tabla=tabla, OP=tabla[0]['OP'],
-                           fInicio=tabla[0]['fechaInicio'], fFin=tabla[0]['fechaFin']
-                           , acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=cantidad, total=cant)
+                        fInicio=tabla[0]['fechaInicio'], fFin=tabla[0]['fechaFin']
+                        , acuerdos=acuerdos, ambientes=ambientes, barcodes=barcodes, cantidad=cantidad, total=cant)
 
 @app.route('/getTablaPallet', methods=["POST", "GET"])
 def getTablaPallet():
@@ -866,16 +860,14 @@ def gestion_restos(ventana):
         display2 = "display:None;"
         display3 = ""
     if aux is False:
-        return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3,
-                               coloresBAJA=Resto().listaColoresBAJA(), coloresALTA=Resto().listaColoresALTA(),
-                               idBAJA=Resto().listaIdBAJA(), buttons1="", buttons2="disabled", backgroundcolor="red")
+        return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3, coloresBAJA=Resto().listaColoresBAJA(), 
+                            coloresALTA=Resto().listaColoresALTA(), idBAJA=Resto().listaIdBAJA(), buttons1="", buttons2="disabled", backgroundcolor="red")
     else:
         aux2 = Resto().obtenerColores(aux)
         print(aux2)
         flash('Optiplanning Activadado, los siguientes colores no se pueden dar de baja: \n' + str(aux2))
-        return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3,
-                               coloresBAJA=Resto().listaColoresBAJA_OP(aux2), coloresALTA=Resto().listaColoresALTA(),
-                               buttons1="disabled",  buttons2="", backgroundcolor="green", idBAJA=Resto().listaIdBAJA())
+        return render_template("gestionRestos.html", display1=display1, display2=display2, display3=display3, coloresBAJA=Resto().listaColoresBAJA_OP(aux2), 
+                            coloresALTA=Resto().listaColoresALTA(), buttons1="disabled",  buttons2="", backgroundcolor="green", idBAJA=Resto().listaIdBAJA())
 
 
 
@@ -960,7 +952,9 @@ def agregar_nota(maquina, op, pieza):
     print(maquina)
     print(op)
     print(pieza)
-    obs = request.form['obs']
+    x = datetime.datetime.now()
+    print(x.strftime("%d/%m/%Y %X"))
+    obs = request.form['obs'] + ' ' + x.strftime("%d/%m/%Y %X")
     print(obs)
     if pieza == "aa":
         pieza = None
@@ -973,13 +967,212 @@ def modificar_nota(maquina, op, pieza):
     print(maquina)
     print(op)
     print(pieza)
-    obs = request.form['obs']
+    x = datetime.datetime.now()
+    print(x.strftime("%d/%m/%Y %X"))
+    obs = request.form['obs'] + ' ' + x.strftime("%d/%m/%Y %X")
     print(obs)
     if pieza == "aa":
         pieza = None
     Planificacion().updateNota(maquina, op, pieza, obs)
     return redirect(url_for('planificacion', maquina=maquina))
 
+
+# COMEX
+@app.route('/comex_paquetes/<int:opc>')
+def comex_paquetes(opc: int):
+    if opc == 1:
+        flash("Pieza escaneada correctamente" , 'success')
+    elif opc == 2:
+        flash("Pieza ya se encuentra en el paquete", 'warning')
+    elif opc == 3:
+        flash("Pieza no existe en el sistema", 'danger')
+    elif opc == 4:
+        flash("Pieza escaneada y Paquete cerrado correctamente" , 'success')
+    elif opc == 5:
+        flash("Pieza eliminada", 'primary')
+    elif opc == 6:
+        flash("Pieza no pertenece al paquete", 'warning')
+    if Comex().getPiezas() == []:
+        botonClose = 'disabled'
+        nroPaquete = Comex().getNroPaquete() + 1
+    else:
+        botonClose = ''
+        nroPaquete = Comex().getNroPaquete() 
+    return render_template("comex_paquetes.html", piezas_selected=Comex().getPiezas(), botonClose=botonClose, nroPaquete=nroPaquete)
+
+
+@app.route('/comex_agregarPieza/<int:nroPaquete>', methods=["POST"])
+def comex_agregarPieza(nroPaquete: int):
+    print(request.form['prmo'])
+    print(Comex().verificarPieza(request.form['prmo']))
+    opc, idModulo, clasificacion = Comex().verificarPieza(request.form['prmo'])
+    if opc == 1:
+        aux = Comex().verPaqueteCompleto(request.form['prmo'], idModulo, nroPaquete, clasificacion)
+        if aux == 1:
+            print('Paquete Completo')
+            Comex().cerrarPaquete(nroPaquete, clasificacion, request.form['prmo'])
+            opc = 4
+        elif aux == 8:
+            opc = 6
+            print('Pieza incorrecta, no pertence al paquete')
+        else:
+            print('Paquete imcompleto')
+    return redirect(url_for('comex_paquetes', opc=opc))
+
+@app.route('/comex_eliminarPieza/<int:idPieza>', methods=["POST"])
+def comex_eliminarPieza(idPieza: int):
+    print(idPieza)
+    Comex().elminarPieza(idPieza)
+    opc = 5
+    return redirect(url_for('comex_paquetes', opc=opc))
+
+#PALLET COMEX
+@app.route('/comex_pallets/<int:opc>/<int:nroPallet>/<string:ambiente>')
+def comex_pallets(opc: int, nroPallet: int, ambiente):
+    if opc == 1 or opc == 21:
+        flash("El paquete se a agregado al Pallet correctamente", 'success')
+    elif opc == 22:
+        flash("El paquete no pertenece a la SO asignada", 'danger')
+    elif opc == 2:
+        flash("Ambiente agregado correctamente")
+    elif opc == 3:
+        flash("EL Paquete no existe o ya esta asignado en otro Pallet", 'warning')
+    elif opc == 4:
+        flash("EL Paquete no pertenece al ambiente seleccionado", 'warning')
+    elif opc == 5:
+        flash("Paquete Eliminado", 'danger')
+    elif opc == 6:
+        flash("Pallet creado correctamente", 'success')
+    elif opc == 7:
+        flash("Pallet cerrado correctamente")
+    if ambiente != '0':
+        ambientes = Comex().getAmbientesAcuerdo(nroPallet)
+        print(ambientes)
+        cantidad, cantTotal = Comex().getCantPaquetes(nroPallet, ambiente)
+    else:
+        ambientes = []
+        cantidad = 0 
+        cantTotal = 0
+    print('Segundo ambiente: ' + ambiente)
+    return render_template("comex_pallets.html", nroPallet=nroPallet, ambiente=ambiente, palletsName=Comex().getPalletsAbiertos(), SOs=Comex().getSOs(), ambientes=ambientes
+                            , cantTotal=cantTotal, cantidad=cantidad)
+
+@app.route("/comex_getAmbientesBOs", methods=["POST", "GET"])
+def comex_getAmbientesBOs():
+    global OutputArray
+    if request.method == 'POST':
+        nroPallet = int(request.form['nroPallet'])
+        data = Comex().getAmbientesBOs(nroPallet)
+        return jsonify(data)
+    
+@app.route('/comex_agregarAmbientePallet', methods=["POST"])
+def comex_agregarAmbientePallet():
+    nroPallet = int(request.form['nroPalletagregar'])
+    ambiente = request.form['ambienteAgregar']
+    Comex().agregarAmbientePallet(nroPallet, ambiente)
+    return redirect(url_for('comex_pallets', opc=2, nroPallet=nroPallet, ambiente=ambiente))
+
+@app.route('/comex_agregarPaquete', methods=["POST"])
+def comex_agregarPaquete():
+    nroPallet = int(request.form['nroPallet'])
+    print(nroPallet)
+    nroPaquete = request.form['nropaquete']
+    print(nroPaquete)
+    ambiente = request.form['ambiente']
+    print('Primer ambiente: ' + ambiente)
+    opc = Comex().asignarPalletPaquete(nroPaquete, nroPallet, ambiente)
+    return redirect(url_for('comex_pallets', opc=opc, nroPallet=nroPallet, ambiente=ambiente))
+
+@app.route("/comex_pallet", methods=["POST", "GET"])
+def comex_pallet():
+    global OutputArray
+    if request.method == 'POST':
+        nroPallet = int(request.form['nroPallets'])
+        data = Comex().getDataPallet(nroPallet)
+        print(data)
+        return jsonify(data)
+        
+@app.route("/comex_pallet2", methods=["POST", "GET"])
+def comex_pallet2():
+    global OutputArray
+    if request.method == 'POST':
+        nroPallet = int(request.form['nroPallets'])
+        ambiente = request.form['ambiente']
+        print(ambiente)
+        data = Comex().getDataPallet2(nroPallet, ambiente)
+        print(data)
+        return jsonify(data)
+    
+@app.route("/comex_pallet3", methods=["POST", "GET"])
+def comex_pallet3():
+    global OutputArray
+    if request.method == 'POST':
+        nroPallet = int(request.form['nroPallets'])
+        ambiente = request.form['ambiente']
+        cant, cantTotal = Comex().getCantPaquetes(nroPallet, ambiente)
+        data = {'cantidad': cant, 'cantTotal': cantTotal}
+        print(data)
+        return jsonify(data)
+
+@app.route('/comex_eliminarPaquete', methods=["POST"])
+def comex_eliminarPaquete():
+    nroPallet = Comex().getNroPalletPaquete(request.form['nropaquete'])
+    ambiente = request.form['ambienteAux']
+    print('Ambiente: ' + ambiente)
+    Comex().elminarPaquete(request.form['nropaquete'], ambiente)
+    return redirect(url_for('comex_pallets', opc=5, nroPallet=int(nroPallet), ambiente=ambiente))
+
+@app.route('/comex_crearPallet', methods=["POST"])
+def comex_crearPallet():
+    so = request.form['so']
+    print(so)
+    aux = re.split(' ', so)
+    acuerdo = aux[0]
+    ambiente = so[len(acuerdo)+3:]
+    print(ambiente)
+    Comex().crearPallet(acuerdo, ambiente)
+    opc = 6
+    return redirect(url_for('comex_pallets', opc=opc, nroPallet=Comex().getNroPalletContenedor(), ambiente=ambiente))
+
+@app.route('/comex_cerrarPallet', methods=["POST"])
+def comex_cerrarPallet():
+    nroPallet = request.form['nroPalletCerrar']
+    ambiente = request.form['ambienteCerrar']
+    print('Cerrar Pallet: ' + str(nroPallet), ambiente)
+    Comex().cerrarPallet(nroPallet, ambiente)
+    opc = 7
+    return redirect(url_for('comex_pallets', opc=opc, nroPallet=0, ambiente=0))
+
+# COTENEDOR COMEX
+@app.route('/comex_contenedores')
+def comex_contenedores():
+    return render_template('comex_contenedores.html', contenedores=Comex().getContenedores(), palletContenedores=Comex().getPalletsContenedor(), palletsPendientes=Comex().getPalletsPendientes())
+
+@app.route('/comex_crearContenedor')
+def comex_crearContenedor():
+    Comex().crearContenedor()
+    return redirect(url_for('comex_contenedores'))
+
+
+@app.route('/comex_cerrarContenedor/<int:nroContenedor>', methods=["POST"])
+def comex_cerrarContenedor(nroContenedor: int):
+    destino = request.form['destino']
+    fechaSalida = request.form['fecha'] + 'T' + request.form['hora'] + ':00'
+    print(destino + ' ' + fechaSalida)
+    Comex().cerrarContenedor(nroContenedor, destino, fechaSalida)
+    return redirect(url_for('comex_contenedores'))
+
+@app.route('/comex_eliminarPallet/<int:nroPallet>')
+def comex_eliminarPallet(nroPallet: int):
+    Comex().eliminarPallet(nroPallet)
+    return redirect(url_for('comex_contenedores'))
+
+@app.route('/comex_agregarPallet/<int:nroContenedor>', methods=["POST"])
+def comex_agregarPallet(nroContenedor: int):
+    nroPallet = request.form['nroPallet']
+    print("Nro de Pallet Seleccionado: " + nroPallet)
+    Comex().agregarPallet(nroPallet, nroContenedor)
+    return redirect(url_for('comex_contenedores'))
 
 serve(app, host='0.0.0.0', port=5000, threads=6) # WAITRESS!
 

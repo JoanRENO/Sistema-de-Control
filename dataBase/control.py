@@ -286,7 +286,7 @@ class Control(DataBase):
         im.save('./static/images/ETIQ_DESPACHO.jpg')
         
         #IMPRIMIR ETIQUETA
-        printer_name = 'HPRT HT300 - ZPL'
+        printer_name = 'HPRT HT300 - ZPL DESPACHO'
         file_name = "./static/images/ETIQ_DESPACHO.jpg"
 
         PHYSICALWIDTH = 110

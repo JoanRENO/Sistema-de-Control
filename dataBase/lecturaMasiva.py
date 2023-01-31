@@ -78,15 +78,15 @@ class LecturaMasiva(DataBase):
     def verificar_lectura(self, op, color, espesor, pieza, maquina, cant):
         if pieza == '':
             complete = "SELECT idPieza FROM " + DataBase.Tablas.basePiezas + " WHERE OP = '" + op + "' " \
-                       "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=?" \
-                       " AND (lectura" + maquina + " = 0 OR lectura" + maquina + " is null) " \
+                        "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=?" \
+                        " AND (lectura" + maquina + " = 0 OR lectura" + maquina + " is null) " \
                         "AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
             self.cursor.execute(complete, color, espesor)
         else:
             complete = "SELECT TOP " + str(cant) + " idPieza FROM " + DataBase.Tablas.basePiezas + " WHERE OP = '" + op + "' " \
-                       "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND PIEZA_DESCRIPCION=?" \
-                       " AND (lectura" + maquina + " = 0 OR lectura" + maquina + " is null)" \
-                       " AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
+                        "AND PIEZA_NOMBRECOLOR=? AND PIEZA_PROFUNDO=? AND PIEZA_DESCRIPCION=?" \
+                        " AND (lectura" + maquina + " = 0 OR lectura" + maquina + " is null)" \
+                        " AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
             self.cursor.execute(complete, color, espesor, pieza)
         records = self.cursor.fetchall()
         if not records:
@@ -102,11 +102,20 @@ class LecturaMasiva(DataBase):
     def updateMasivo(self, ids, maquina):
         for id in ids:
             complete = 'UPDATE ' + DataBase.Tablas.basePiezas + ' SET fechaLectura' + maquina + ' = ?, lectura' \
-                       + maquina + ' = 1 WHERE idPieza = ?'
+                    + maquina + ' = 1 WHERE idPieza = ?'
             self.cursor.execute(complete, fecha(), id['idPieza'])
             self.cursor.commit()
         self.close()
-
+        
+    def updateMasivo2(self, maquina, op, color, profundo):
+        complete = 'UPDATE ' + DataBase.Tablas.basePiezas + ' SET fechaLectura' + maquina + ' = ?, lectura' \
+                    + maquina + " = 1 WHERE OP = ? AND PIEZA_NOMBRECOLOR = ? AND PIEZA_PROFUNDO = ?" \
+                    " AND (lectura" + maquina + " = 0 OR lectura" + maquina + " is null) " \
+                        "AND RUTA_ASIGNADA LIKE '%" + maquina + "%'"
+        self.cursor.execute(complete, fecha(), op, color, profundo)
+        self.cursor.commit()
+        self.close()
+        
     def verificar_pin(self, pin):
         self.cursor.execute("SELECT Usuario FROM " + DataBase.Tablas.tablaUsuarios + " WHERE PIN = ?", pin)
         usuario = self.cursor.fetchone()
